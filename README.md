@@ -1,6 +1,6 @@
 # School Management Portal
 
-A modern school management portal designed to simplify student, staff, and administrative operations. The project demonstrates a practical education-management workflow with role-based dashboards, profile management, academic records, and structured school data handling.
+A modern frontend for a full-stack school management system. It connects to the separate **School Backend API** and displays live backend data for students, staff, grades, and API health status.
 
 ## Overview
 
@@ -8,17 +8,34 @@ School Management Portal is built to support the daily operations of a school en
 
 This project is part of my full-stack development portfolio and highlights my ability to design practical systems for real-world institutions, structure frontend dashboards, and connect user-facing workflows to backend services.
 
+## Connected Backend
+
+Backend repository:
+
+```txt
+https://github.com/Abobbynwa/school-backend
+```
+
+The frontend calls these backend endpoints:
+
+```http
+GET /api/health
+GET /api/students
+GET /api/staff
+GET /api/grades
+```
+
 ## Key Features
 
+- Live backend API connection
+- Backend health status display
+- Student records fetched from API
+- Staff records fetched from API
+- Grade records fetched from API
 - Admin-focused school management workflow
-- Student profile and academic record handling
-- Staff management structure
 - Role-based dashboard concept for Admin, Staff, and Students
-- Student registration and profile display flow
-- Academic information management
 - Clean responsive user interface
-- Scalable structure for future backend/API integration
-- Portfolio-ready education technology use case
+- Scalable structure for future database and authentication integration
 
 ## User Roles
 
@@ -43,41 +60,14 @@ This project is part of my full-stack development portfolio and highlights my ab
 
 ## Tech Stack
 
-The project is designed around a modern full-stack architecture.
-
 - Frontend: React
-- Styling: CSS / component-based UI styling
-- Backend-ready structure: Node.js / Express integration concept
-- Database-ready structure: PostgreSQL integration concept
-- Authentication-ready structure: Firebase Auth integration concept
+- Build Tool: Vite
+- Styling: CSS
+- Icons: Lucide React
+- Backend API: Node.js / Express
 - Version Control: Git and GitHub
 
-## Project Purpose
-
-This project was created to solve a realistic school administration problem: how to organize student, staff, and academic workflows in a centralized digital portal.
-
-It is especially useful for demonstrating:
-
-- Dashboard design
-- Role-based system thinking
-- Education technology workflows
-- Frontend application structure
-- Full-stack product planning
-- Scalable school-management architecture
-
-## Planned Improvements
-
-- Complete backend API integration
-- Add secure authentication and protected routes
-- Add admin-created student and staff accounts
-- Add grade upload and report-card generation
-- Add assignment management
-- Add live chat between Admin, Staff, and Students
-- Add email notifications for academic updates
-- Add database seeding and testing data
-- Improve deployment documentation
-
-## Getting Started
+## Local Setup
 
 Clone the repository:
 
@@ -92,6 +82,18 @@ Install dependencies:
 npm install
 ```
 
+Create a local environment file:
+
+```bash
+touch .env
+```
+
+Add your backend URL:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000
+```
+
 Run the development server:
 
 ```bash
@@ -104,20 +106,40 @@ Build for production:
 npm run build
 ```
 
-## Suggested Environment Variables
+## Vercel Deployment
 
-When backend and authentication are connected, the project may require environment variables such as:
+Use these settings on Vercel:
+
+```txt
+Framework Preset: Vite
+Install Command: npm install
+Build Command: npm run build
+Output Directory: dist
+```
+
+Add this environment variable in Vercel:
 
 ```env
-VITE_API_BASE_URL=your_backend_api_url
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_API_BASE_URL=https://your-render-backend-url.onrender.com
 ```
+
+After adding or changing environment variables, redeploy the Vercel project.
+
+## Backend Deployment
+
+Deploy the backend repository on Render:
+
+```txt
+Repository: Abobbynwa/school-backend
+Build Command: npm install
+Start Command: npm start
+```
+
+Then copy the Render backend URL and paste it into this frontend project's `VITE_API_BASE_URL` variable on Vercel.
 
 ## Portfolio Summary
 
-**School Management Portal** is a full-stack education technology project focused on student, staff, and admin management. It demonstrates practical system design, dashboard planning, and scalable school workflow architecture.
+**School Management Portal** is a full-stack education technology project focused on student, staff, and admin management. It demonstrates frontend dashboard design, backend API integration, system planning, and scalable school workflow architecture.
 
 ## Author
 
