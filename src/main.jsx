@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   BookOpen,
@@ -9,8 +9,13 @@ import {
   ClipboardList,
   MessageCircle,
   Mail,
+  Server,
+  RefreshCw,
 } from "lucide-react";
 import "./styles.css";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 const features = [
   {
@@ -78,13 +83,63 @@ const roles = [
   },
 ];
 
-const stats = [
-  { value: "3", label: "Core User Roles" },
-  { value: "8+", label: "Planned Modules" },
-  { value: "100%", label: "Responsive UI" },
-];
-
 function App() {
+  const [health, setHealth] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [staff, setStaff] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadBackendData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const [healthRes, studentsRes, staffRes, gradesRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/health`),
+        fetch(`${API_BASE_URL}/api/students`),
+        fetch(`${API_BASE_URL}/api/staff`),
+        fetch(`${API_BASE_URL}/api/grades`),
+      ]);
+
+      if (!healthRes.ok || !studentsRes.ok || !staffRes.ok || !gradesRes.ok) {
+        throw new Error("One or more backend requests failed.");
+      }
+
+      const [healthData, studentsData, staffData, gradesData] = await Promise.all([
+        healthRes.json(),
+        studentsRes.json(),
+        staffRes.json(),
+        gradesRes.json(),
+      ]);
+
+      setHealth(healthData);
+      setStudents(studentsData.data || []);
+      setStaff(staffData.data || []);
+      setGrades(gradesData.data || []);
+    } catch (err) {
+      setError(
+        "Frontend is live, but it could not reach the backend. Check VITE_API_BASE_URL and backend CORS settings."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBackendData();
+  }, []);
+
+  const stats = useMemo(
+    () => [
+      { value: students.length || "--", label: "Students from API" },
+      { value: staff.length || "--", label: "Staff from API" },
+      { value: grades.length || "--", label: "Grades from API" },
+    ],
+    [students.length, staff.length, grades.length]
+  );
+
   return (
     <main>
       <section className="hero">
@@ -93,22 +148,27 @@ function App() {
             <GraduationCap size={28} />
             <span>SchoolPortal</span>
           </div>
-          <a href="https://github.com/Abobbynwa/school-portal" target="_blank" rel="noreferrer">
-            GitHub Repo
-          </a>
+          <div className="navLinks">
+            <a href="https://github.com/Abobbynwa/school-portal" target="_blank" rel="noreferrer">
+              Frontend Repo
+            </a>
+            <a href="https://github.com/Abobbynwa/school-backend" target="_blank" rel="noreferrer">
+              Backend Repo
+            </a>
+          </div>
         </nav>
 
         <div className="heroGrid">
           <div className="heroContent">
-            <p className="eyebrow">Education Technology Dashboard</p>
-            <h1>Modern school management portal for admins, staff, and students.</h1>
+            <p className="eyebrow">Full-Stack Education Technology</p>
+            <h1>Modern school management portal connected to a live backend API.</h1>
             <p className="lead">
               A portfolio-ready school system interface designed to simplify student records,
               staff management, academic workflows, and secure role-based access.
             </p>
             <div className="actions">
-              <a className="primaryBtn" href="#features">Explore Features</a>
-              <a className="secondaryBtn" href="#roles">View User Roles</a>
+              <a className="primaryBtn" href="#backend">View Live API Data</a>
+              <a className="secondaryBtn" href="#features">Explore Features</a>
             </div>
           </div>
 
@@ -134,11 +194,68 @@ function App() {
               ))}
             </div>
             <div className="miniList">
-              <p><span></span> Student registration workflow</p>
-              <p><span></span> Staff profile management</p>
-              <p><span></span> Grades and assignment planning</p>
+              <p><span></span> Backend URL: {API_BASE_URL}</p>
+              <p><span></span> API Status: {health?.status || (loading ? "checking" : "offline")}</p>
+              <p><span></span> Frontend connected through VITE_API_BASE_URL</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="backend" className="section backendSection">
+        <div className="sectionHeader">
+          <p className="eyebrow">Live Backend Connection</p>
+          <h2>Frontend fetching data from the Express API</h2>
+          <p>
+            This section proves the frontend and backend are connected. It reads students,
+            staff, grades, and health status from the backend API.
+          </p>
+        </div>
+
+        <div className="apiStatusCard">
+          <div>
+            <Server size={26} />
+            <strong>{loading ? "Checking backend..." : health?.service || "Backend connection"}</strong>
+            <span>{health?.timestamp || "No timestamp available"}</span>
+          </div>
+          <button type="button" onClick={loadBackendData}>
+            <RefreshCw size={16} />
+            Refresh API Data
+          </button>
+        </div>
+
+        {error && <p className="errorBox">{error}</p>}
+
+        <div className="dataGrid">
+          <article className="dataCard">
+            <h3>Students</h3>
+            {students.map((student) => (
+              <div className="record" key={student.id}>
+                <strong>{student.name}</strong>
+                <span>{student.className} • {student.email}</span>
+              </div>
+            ))}
+          </article>
+
+          <article className="dataCard">
+            <h3>Staff</h3>
+            {staff.map((member) => (
+              <div className="record" key={member.id}>
+                <strong>{member.name}</strong>
+                <span>{member.role} • {member.classHandled}</span>
+              </div>
+            ))}
+          </article>
+
+          <article className="dataCard">
+            <h3>Grades</h3>
+            {grades.map((grade) => (
+              <div className="record" key={grade.id}>
+                <strong>{grade.subject}</strong>
+                <span>Student #{grade.studentId} • Score {grade.score} • Grade {grade.grade}</span>
+              </div>
+            ))}
+          </article>
         </div>
       </section>
 
@@ -189,20 +306,19 @@ function App() {
       <section className="section stackSection">
         <div>
           <p className="eyebrow">Tech Direction</p>
-          <h2>Frontend now live. Backend integration ready.</h2>
+          <h2>Frontend and backend are now wired together.</h2>
           <p>
-            This deployed version presents the project interface and product structure.
-            It is prepared for connection to a Node.js/Express backend, PostgreSQL database,
-            Firebase Authentication, email notifications, and live chat modules.
+            The frontend reads live demo records from the Node.js/Express API. The next
+            production upgrade is adding PostgreSQL or Supabase for persistent database storage.
           </p>
         </div>
         <div className="stackTags">
           <span>React</span>
           <span>Vite</span>
-          <span>CSS</span>
-          <span>Node.js Ready</span>
+          <span>Express API</span>
+          <span>CORS</span>
+          <span>Node.js</span>
           <span>PostgreSQL Ready</span>
-          <span>Firebase Auth Ready</span>
         </div>
       </section>
     </main>
