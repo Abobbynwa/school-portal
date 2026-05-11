@@ -12,5 +12,168 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      window.__SCHOOL_PORTAL_UPLOAD_CONFIG__ = {
+        supabaseUrl: "%VITE_SUPABASE_URL%",
+        anonKey: "%VITE_SUPABASE_ANON_KEY%",
+        bucket: "%VITE_SUPABASE_BUCKET%" || "school-files",
+      };
+
+      (function () {
+        const config = window.__SCHOOL_PORTAL_UPLOAD_CONFIG__ || {};
+        const missing = (value) => !value || String(value).includes("%VITE_");
+        const fields = [
+          {
+            placeholder: "Passport photo URL",
+            label: "Upload Passport Photo",
+            folder: "student-passports",
+            accept: "image/*",
+          },
+          {
+            placeholder: "Staff photo URL",
+            label: "Upload Staff Photo",
+            folder: "staff-photos",
+            accept: "image/*",
+          },
+          {
+            placeholder: "Receipt URL",
+            label: "Upload Payment Receipt",
+            folder: "payment-receipts",
+            accept: "image/*,application/pdf",
+          },
+          {
+            placeholder: "Report-card PDF URL",
+            label: "Upload Report-card PDF",
+            folder: "report-cards",
+            accept: "application/pdf",
+          },
+          {
+            placeholder: "Attachment URL",
+            label: "Upload Assignment Attachment",
+            folder: "assignments",
+            accept: "image/*,application/pdf,.doc,.docx",
+          },
+        ];
+
+        function setReactInputValue(input, value) {
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+          setter.call(input, value);
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        async function uploadToSupabase(file, folder, status) {
+          if (missing(config.supabaseUrl) || missing(config.anonKey)) {
+            throw new Error("Supabase upload keys are not configured in Vercel.");
+          }
+
+          const bucket = missing(config.bucket) ? "school-files" : config.bucket;
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+          const path = `${folder}/${Date.now()}-${safeName}`;
+          const endpoint = `${config.supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+
+          status.textContent = "Uploading...";
+
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              apikey: config.anonKey,
+              Authorization: `Bearer ${config.anonKey}`,
+              "Content-Type": file.type || "application/octet-stream",
+              "x-upsert": "true",
+            },
+            body: file,
+          });
+
+          if (!response.ok) {
+            const text = await response.text().catch(() => "");
+            throw new Error(text || "Upload failed. Check Supabase bucket policy.");
+          }
+
+          return `${config.supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+        }
+
+        function enhanceUploadInput(textInput, item) {
+          if (!textInput || textInput.dataset.uploadEnhanced === "true") return;
+          textInput.dataset.uploadEnhanced = "true";
+          textInput.type = "hidden";
+
+          const box = document.createElement("div");
+          box.className = "fileUploadBox";
+
+          const label = document.createElement("label");
+          label.textContent = item.label;
+
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = item.accept;
+
+          const status = document.createElement("small");
+          status.textContent = textInput.value ? "File already attached." : "Choose a file to upload.";
+
+          input.addEventListener("change", async () => {
+            const file = input.files && input.files[0];
+            if (!file) return;
+
+            try {
+              const url = await uploadToSupabase(file, item.folder, status);
+              setReactInputValue(textInput, url);
+              status.textContent = "Uploaded successfully.";
+              status.style.color = "#166534";
+            } catch (error) {
+              status.textContent = error.message;
+              status.style.color = "#991b1b";
+            }
+          });
+
+          box.appendChild(label);
+          box.appendChild(input);
+          box.appendChild(status);
+          textInput.insertAdjacentElement("afterend", box);
+        }
+
+        function addLoginTypeSelector() {
+          const loginForm = document.querySelector(".authGrid .formCard");
+          if (!loginForm || loginForm.dataset.roleSelector === "true") return;
+
+          const emailInput = loginForm.querySelector('input[type="email"]');
+          if (!emailInput) return;
+
+          loginForm.dataset.roleSelector = "true";
+
+          const select = document.createElement("select");
+          select.className = "loginTypeSelect";
+          select.innerHTML = '<option value="admin">Login as Admin</option><option value="staff">Login as Staff</option>';
+
+          const hint = document.createElement("small");
+          hint.className = "uploadHint";
+          hint.textContent = "Admin and staff use their assigned email and password.";
+
+          select.addEventListener("change", () => {
+            const title = loginForm.querySelector(".formTitle h3");
+            if (title && title.textContent.includes("Login")) {
+              title.textContent = select.value === "staff" ? "Staff Login" : "Admin Login";
+            }
+          });
+
+          emailInput.insertAdjacentElement("beforebegin", select);
+          select.insertAdjacentElement("afterend", hint);
+        }
+
+        function runEnhancements() {
+          fields.forEach((item) => {
+            document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) =>
+              enhanceUploadInput(input, item)
+            );
+          });
+          addLoginTypeSelector();
+        }
+
+        const observer = new MutationObserver(runEnhancements);
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        window.addEventListener("load", runEnhancements);
+        setInterval(runEnhancements, 1200);
+      })();
+    </script>
   </body>
 </html>
