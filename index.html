@@ -31,62 +31,12 @@
           { placeholder: "Attachment URL", label: "Upload Assignment Attachment", folder: "assignments", accept: "image/*,application/pdf,.doc,.docx" },
         ];
 
-        const teachingRoles = [
-          "Form Teacher",
-          "Subject Teacher",
-          "Class Teacher",
-          "Head Teacher",
-          "Principal",
-          "Vice Principal",
-        ];
+        const teachingRoles = ["Form Teacher", "Subject Teacher", "Class Teacher", "Head Teacher", "Principal", "Vice Principal"];
+        const nonTeachingRoles = ["Bursar", "Secretary", "Account Officer", "Registrar", "Librarian", "School Nurse", "ICT Officer", "Security Officer", "Driver", "Cleaner", "Store Keeper"];
+        const juniorSubjects = ["Mathematics", "English Language", "Basic Science", "Basic Technology", "Social Studies", "Civic Education", "Business Studies", "Computer Studies", "Agricultural Science", "Christian Religious Studies", "French", "Physical and Health Education", "Creative Arts"];
+        const seniorSubjects = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics", "Government", "Literature in English", "Commerce", "Accounting", "Geography", "Civic Education", "Computer Studies", "Agricultural Science", "Christian Religious Studies"];
 
-        const nonTeachingRoles = [
-          "Bursar",
-          "Secretary",
-          "Account Officer",
-          "Registrar",
-          "Librarian",
-          "School Nurse",
-          "ICT Officer",
-          "Security Officer",
-          "Driver",
-          "Cleaner",
-          "Store Keeper",
-        ];
-
-        const juniorSubjects = [
-          "Mathematics",
-          "English Language",
-          "Basic Science",
-          "Basic Technology",
-          "Social Studies",
-          "Civic Education",
-          "Business Studies",
-          "Computer Studies",
-          "Agricultural Science",
-          "Christian Religious Studies",
-          "French",
-          "Physical and Health Education",
-          "Creative Arts",
-        ];
-
-        const seniorSubjects = [
-          "Mathematics",
-          "English Language",
-          "Physics",
-          "Chemistry",
-          "Biology",
-          "Economics",
-          "Government",
-          "Literature in English",
-          "Commerce",
-          "Accounting",
-          "Geography",
-          "Civic Education",
-          "Computer Studies",
-          "Agricultural Science",
-          "Christian Religious Studies",
-        ];
+        let lastPopupText = "";
 
         function setReactInputValue(input, value) {
           const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
@@ -96,58 +46,88 @@
         }
 
         async function uploadToSupabase(file, folder, status) {
-          if (missing(config.supabaseUrl) || missing(config.anonKey)) {
-            throw new Error("Supabase upload keys are not configured in Vercel.");
-          }
-
+          if (missing(config.supabaseUrl) || missing(config.anonKey)) throw new Error("Supabase upload keys are not configured in Vercel.");
           const bucket = missing(config.bucket) ? "school-files" : config.bucket;
           const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
           const path = `${folder}/${Date.now()}-${safeName}`;
           const endpoint = `${config.supabaseUrl}/storage/v1/object/${bucket}/${path}`;
-
           status.textContent = "Uploading...";
-
           const response = await fetch(endpoint, {
             method: "POST",
-            headers: {
-              apikey: config.anonKey,
-              Authorization: `Bearer ${config.anonKey}`,
-              "Content-Type": file.type || "application/octet-stream",
-              "x-upsert": "true",
-            },
+            headers: { apikey: config.anonKey, Authorization: `Bearer ${config.anonKey}`, "Content-Type": file.type || "application/octet-stream", "x-upsert": "true" },
             body: file,
           });
-
           if (!response.ok) {
             const text = await response.text().catch(() => "");
             throw new Error(text || "Upload failed. Check Supabase bucket policy.");
           }
-
           return `${config.supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+        }
+
+        function showSuccessModal(message) {
+          if (!message || message === lastPopupText) return;
+          lastPopupText = message;
+          document.querySelector(".portalSuccessOverlay")?.remove();
+
+          const overlay = document.createElement("div");
+          overlay.className = "portalSuccessOverlay";
+          overlay.innerHTML = `
+            <div class="portalSuccessModal">
+              <div class="portalSuccessIcon">✓</div>
+              <h2>Successfully Registered</h2>
+              <p>${message}</p>
+              <div class="portalSuccessActions">
+                <a href="#records">View Entered Records</a>
+                <button type="button">Continue</button>
+              </div>
+            </div>
+          `;
+
+          overlay.querySelector("button").addEventListener("click", () => overlay.remove());
+          overlay.addEventListener("click", (event) => {
+            if (event.target === overlay) overlay.remove();
+          });
+          document.body.appendChild(overlay);
+          setTimeout(() => overlay.classList.add("show"), 20);
+        }
+
+        function watchSuccessMessages() {
+          const box = document.querySelector(".successBox");
+          if (!box) return;
+          const text = box.textContent.trim();
+          if (/staff|student|payment|fee|grade|result|announcement|message|saved|registered|created|uploaded|published/i.test(text)) {
+            showSuccessModal(text);
+          }
+        }
+
+        function addRecordsShortcut() {
+          const statusCard = document.querySelector(".apiStatusCard");
+          if (!statusCard || statusCard.dataset.recordsShortcut === "true") return;
+          const actions = statusCard.querySelector(".inlineActions") || statusCard;
+          statusCard.dataset.recordsShortcut = "true";
+          const link = document.createElement("a");
+          link.href = "#records";
+          link.className = "recordsShortcutBtn";
+          link.textContent = "View Entered Records";
+          actions.prepend(link);
         }
 
         function enhanceUploadInput(textInput, item) {
           if (!textInput || textInput.dataset.uploadEnhanced === "true") return;
           textInput.dataset.uploadEnhanced = "true";
           textInput.type = "hidden";
-
           const box = document.createElement("div");
           box.className = "fileUploadBox";
-
           const label = document.createElement("label");
           label.textContent = item.label;
-
           const input = document.createElement("input");
           input.type = "file";
           input.accept = item.accept;
-
           const status = document.createElement("small");
           status.textContent = textInput.value ? "File already attached." : "Choose a file to upload.";
-
           input.addEventListener("change", async () => {
             const file = input.files && input.files[0];
             if (!file) return;
-
             try {
               const url = await uploadToSupabase(file, item.folder, status);
               setReactInputValue(textInput, url);
@@ -158,7 +138,6 @@
               status.style.color = "#991b1b";
             }
           });
-
           box.appendChild(label);
           box.appendChild(input);
           box.appendChild(status);
@@ -168,27 +147,19 @@
         function addLoginTypeSelector() {
           const loginForm = document.querySelector(".authGrid .formCard");
           if (!loginForm || loginForm.dataset.roleSelector === "true") return;
-
           const emailInput = loginForm.querySelector('input[type="email"]');
           if (!emailInput) return;
-
           loginForm.dataset.roleSelector = "true";
-
           const select = document.createElement("select");
           select.className = "loginTypeSelect";
           select.innerHTML = '<option value="admin">Login as Admin</option><option value="staff">Login as Staff</option>';
-
           const hint = document.createElement("small");
           hint.className = "uploadHint";
           hint.textContent = "Admin and staff use their assigned email and password.";
-
           select.addEventListener("change", () => {
             const title = loginForm.querySelector(".formTitle h3");
-            if (title && title.textContent.includes("Login")) {
-              title.textContent = select.value === "staff" ? "Staff Login" : "Admin Login";
-            }
+            if (title && title.textContent.includes("Login")) title.textContent = select.value === "staff" ? "Staff Login" : "Admin Login";
           });
-
           emailInput.insertAdjacentElement("beforebegin", select);
           select.insertAdjacentElement("afterend", hint);
         }
@@ -200,12 +171,7 @@
             input.readOnly = true;
             input.placeholder = "Staff ID auto-generated";
             input.style.background = "#eef6ff";
-
-            if (!input.value) {
-              const id = `STF-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-              setReactInputValue(input, id);
-            }
-
+            if (!input.value) setReactInputValue(input, `STF-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
             const hint = document.createElement("small");
             hint.className = "uploadHint";
             hint.textContent = "Staff ID is generated automatically by the portal.";
@@ -218,37 +184,26 @@
             if (roleInput.dataset.roleEnhanced === "true") return;
             roleInput.dataset.roleEnhanced = "true";
             roleInput.type = "hidden";
-
-            const classSelect = Array.from(roleInput.closest("form")?.querySelectorAll("select") || []).find((select) =>
-              Array.from(select.options).some((option) => option.textContent.trim() === "Non-teaching")
-            );
-
+            const classSelect = Array.from(roleInput.closest("form")?.querySelectorAll("select") || []).find((select) => Array.from(select.options).some((option) => option.textContent.trim() === "Non-teaching"));
             const wrapper = document.createElement("div");
             wrapper.className = "fileUploadBox";
-
             const label = document.createElement("label");
             label.textContent = "Staff Role";
-
             const category = document.createElement("select");
             category.innerHTML = '<option value="teaching">Teaching Staff</option><option value="non-teaching">Non-teaching Staff</option>';
-
             const roleSelect = document.createElement("select");
-
             const renderRoles = () => {
               const isNonTeaching = category.value === "non-teaching";
               const roles = isNonTeaching ? nonTeachingRoles : teachingRoles;
               roleSelect.innerHTML = roles.map((role) => `<option value="${role}">${role}</option>`).join("");
               setReactInputValue(roleInput, roles[0]);
-
               if (classSelect) {
                 classSelect.value = isNonTeaching ? "Non-teaching" : classSelect.value === "Non-teaching" ? "JSS1" : classSelect.value;
                 classSelect.dispatchEvent(new Event("change", { bubbles: true }));
               }
             };
-
             category.addEventListener("change", renderRoles);
             roleSelect.addEventListener("change", () => setReactInputValue(roleInput, roleSelect.value));
-
             wrapper.appendChild(label);
             wrapper.appendChild(category);
             wrapper.appendChild(roleSelect);
@@ -262,33 +217,20 @@
             if (subjectInput.dataset.subjectEnhanced === "true") return;
             subjectInput.dataset.subjectEnhanced = "true";
             subjectInput.type = "hidden";
-
             const form = subjectInput.closest("form");
-            const classSelect = Array.from(form?.querySelectorAll("select") || []).find((select) =>
-              Array.from(select.options).some((option) => ["JSS1", "SS1", "Non-teaching"].includes(option.textContent.trim()))
-            );
-
+            const classSelect = Array.from(form?.querySelectorAll("select") || []).find((select) => Array.from(select.options).some((option) => ["JSS1", "SS1", "Non-teaching"].includes(option.textContent.trim())));
             const wrapper = document.createElement("div");
             wrapper.className = "fileUploadBox";
-
             const label = document.createElement("label");
             label.textContent = "Select Subjects";
-
             const grid = document.createElement("div");
             grid.style.display = "grid";
             grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
             grid.style.gap = "8px";
-
-            const updateHiddenValue = () => {
-              const selected = Array.from(grid.querySelectorAll('input[type="checkbox"]:checked')).map((item) => item.value);
-              setReactInputValue(subjectInput, selected.join(", "));
-            };
-
+            const updateHiddenValue = () => setReactInputValue(subjectInput, Array.from(grid.querySelectorAll('input[type="checkbox"]:checked')).map((item) => item.value).join(", "));
             const renderSubjects = () => {
               const classValue = classSelect?.value || "JSS1";
-              const isSenior = classValue.startsWith("SS");
-              const list = isSenior ? seniorSubjects : juniorSubjects;
-
+              const list = classValue.startsWith("SS") ? seniorSubjects : juniorSubjects;
               grid.innerHTML = "";
               list.forEach((subject) => {
                 const item = document.createElement("label");
@@ -297,22 +239,18 @@
                 item.style.gap = "8px";
                 item.style.fontSize = "0.9rem";
                 item.style.color = "#334155";
-
                 const check = document.createElement("input");
                 check.type = "checkbox";
                 check.value = subject;
                 check.style.width = "auto";
                 check.addEventListener("change", updateHiddenValue);
-
                 item.appendChild(check);
                 item.appendChild(document.createTextNode(subject));
                 grid.appendChild(item);
               });
               updateHiddenValue();
             };
-
             if (classSelect) classSelect.addEventListener("change", renderSubjects);
-
             wrapper.appendChild(label);
             wrapper.appendChild(grid);
             subjectInput.insertAdjacentElement("afterend", wrapper);
@@ -321,13 +259,13 @@
         }
 
         function runEnhancements() {
-          fields.forEach((item) => {
-            document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) => enhanceUploadInput(input, item));
-          });
+          fields.forEach((item) => document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) => enhanceUploadInput(input, item)));
           addLoginTypeSelector();
           enhanceStaffId();
           enhanceStaffRole();
           enhanceSubjects();
+          addRecordsShortcut();
+          watchSuccessMessages();
         }
 
         const observer = new MutationObserver(runEnhancements);
