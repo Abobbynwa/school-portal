@@ -22,37 +22,70 @@
       (function () {
         const config = window.__SCHOOL_PORTAL_UPLOAD_CONFIG__ || {};
         const missing = (value) => !value || String(value).includes("%VITE_");
+
         const fields = [
-          {
-            placeholder: "Passport photo URL",
-            label: "Upload Passport Photo",
-            folder: "student-passports",
-            accept: "image/*",
-          },
-          {
-            placeholder: "Staff photo URL",
-            label: "Upload Staff Photo",
-            folder: "staff-photos",
-            accept: "image/*",
-          },
-          {
-            placeholder: "Receipt URL",
-            label: "Upload Payment Receipt",
-            folder: "payment-receipts",
-            accept: "image/*,application/pdf",
-          },
-          {
-            placeholder: "Report-card PDF URL",
-            label: "Upload Report-card PDF",
-            folder: "report-cards",
-            accept: "application/pdf",
-          },
-          {
-            placeholder: "Attachment URL",
-            label: "Upload Assignment Attachment",
-            folder: "assignments",
-            accept: "image/*,application/pdf,.doc,.docx",
-          },
+          { placeholder: "Passport photo URL", label: "Upload Passport Photo", folder: "student-passports", accept: "image/*" },
+          { placeholder: "Staff photo URL", label: "Upload Staff Photo", folder: "staff-photos", accept: "image/*" },
+          { placeholder: "Receipt URL", label: "Upload Payment Receipt", folder: "payment-receipts", accept: "image/*,application/pdf" },
+          { placeholder: "Report-card PDF URL", label: "Upload Report-card PDF", folder: "report-cards", accept: "application/pdf" },
+          { placeholder: "Attachment URL", label: "Upload Assignment Attachment", folder: "assignments", accept: "image/*,application/pdf,.doc,.docx" },
+        ];
+
+        const teachingRoles = [
+          "Form Teacher",
+          "Subject Teacher",
+          "Class Teacher",
+          "Head Teacher",
+          "Principal",
+          "Vice Principal",
+        ];
+
+        const nonTeachingRoles = [
+          "Bursar",
+          "Secretary",
+          "Account Officer",
+          "Registrar",
+          "Librarian",
+          "School Nurse",
+          "ICT Officer",
+          "Security Officer",
+          "Driver",
+          "Cleaner",
+          "Store Keeper",
+        ];
+
+        const juniorSubjects = [
+          "Mathematics",
+          "English Language",
+          "Basic Science",
+          "Basic Technology",
+          "Social Studies",
+          "Civic Education",
+          "Business Studies",
+          "Computer Studies",
+          "Agricultural Science",
+          "Christian Religious Studies",
+          "French",
+          "Physical and Health Education",
+          "Creative Arts",
+        ];
+
+        const seniorSubjects = [
+          "Mathematics",
+          "English Language",
+          "Physics",
+          "Chemistry",
+          "Biology",
+          "Economics",
+          "Government",
+          "Literature in English",
+          "Commerce",
+          "Accounting",
+          "Geography",
+          "Civic Education",
+          "Computer Studies",
+          "Agricultural Science",
+          "Christian Religious Studies",
         ];
 
         function setReactInputValue(input, value) {
@@ -160,13 +193,141 @@
           select.insertAdjacentElement("afterend", hint);
         }
 
+        function enhanceStaffId() {
+          document.querySelectorAll('input[placeholder="Staff ID"]').forEach((input) => {
+            if (input.dataset.staffIdEnhanced === "true") return;
+            input.dataset.staffIdEnhanced = "true";
+            input.readOnly = true;
+            input.placeholder = "Staff ID auto-generated";
+            input.style.background = "#eef6ff";
+
+            if (!input.value) {
+              const id = `STF-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+              setReactInputValue(input, id);
+            }
+
+            const hint = document.createElement("small");
+            hint.className = "uploadHint";
+            hint.textContent = "Staff ID is generated automatically by the portal.";
+            input.insertAdjacentElement("afterend", hint);
+          });
+        }
+
+        function enhanceStaffRole() {
+          document.querySelectorAll('input[placeholder="Role e.g. Form Teacher"]').forEach((roleInput) => {
+            if (roleInput.dataset.roleEnhanced === "true") return;
+            roleInput.dataset.roleEnhanced = "true";
+            roleInput.type = "hidden";
+
+            const classSelect = Array.from(roleInput.closest("form")?.querySelectorAll("select") || []).find((select) =>
+              Array.from(select.options).some((option) => option.textContent.trim() === "Non-teaching")
+            );
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "fileUploadBox";
+
+            const label = document.createElement("label");
+            label.textContent = "Staff Role";
+
+            const category = document.createElement("select");
+            category.innerHTML = '<option value="teaching">Teaching Staff</option><option value="non-teaching">Non-teaching Staff</option>';
+
+            const roleSelect = document.createElement("select");
+
+            const renderRoles = () => {
+              const isNonTeaching = category.value === "non-teaching";
+              const roles = isNonTeaching ? nonTeachingRoles : teachingRoles;
+              roleSelect.innerHTML = roles.map((role) => `<option value="${role}">${role}</option>`).join("");
+              setReactInputValue(roleInput, roles[0]);
+
+              if (classSelect) {
+                classSelect.value = isNonTeaching ? "Non-teaching" : classSelect.value === "Non-teaching" ? "JSS1" : classSelect.value;
+                classSelect.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            };
+
+            category.addEventListener("change", renderRoles);
+            roleSelect.addEventListener("change", () => setReactInputValue(roleInput, roleSelect.value));
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(category);
+            wrapper.appendChild(roleSelect);
+            roleInput.insertAdjacentElement("afterend", wrapper);
+            renderRoles();
+          });
+        }
+
+        function enhanceSubjects() {
+          document.querySelectorAll('input[placeholder="Subjects comma separated"]').forEach((subjectInput) => {
+            if (subjectInput.dataset.subjectEnhanced === "true") return;
+            subjectInput.dataset.subjectEnhanced = "true";
+            subjectInput.type = "hidden";
+
+            const form = subjectInput.closest("form");
+            const classSelect = Array.from(form?.querySelectorAll("select") || []).find((select) =>
+              Array.from(select.options).some((option) => ["JSS1", "SS1", "Non-teaching"].includes(option.textContent.trim()))
+            );
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "fileUploadBox";
+
+            const label = document.createElement("label");
+            label.textContent = "Select Subjects";
+
+            const grid = document.createElement("div");
+            grid.style.display = "grid";
+            grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+            grid.style.gap = "8px";
+
+            const updateHiddenValue = () => {
+              const selected = Array.from(grid.querySelectorAll('input[type="checkbox"]:checked')).map((item) => item.value);
+              setReactInputValue(subjectInput, selected.join(", "));
+            };
+
+            const renderSubjects = () => {
+              const classValue = classSelect?.value || "JSS1";
+              const isSenior = classValue.startsWith("SS");
+              const list = isSenior ? seniorSubjects : juniorSubjects;
+
+              grid.innerHTML = "";
+              list.forEach((subject) => {
+                const item = document.createElement("label");
+                item.style.display = "flex";
+                item.style.alignItems = "center";
+                item.style.gap = "8px";
+                item.style.fontSize = "0.9rem";
+                item.style.color = "#334155";
+
+                const check = document.createElement("input");
+                check.type = "checkbox";
+                check.value = subject;
+                check.style.width = "auto";
+                check.addEventListener("change", updateHiddenValue);
+
+                item.appendChild(check);
+                item.appendChild(document.createTextNode(subject));
+                grid.appendChild(item);
+              });
+              updateHiddenValue();
+            };
+
+            if (classSelect) classSelect.addEventListener("change", renderSubjects);
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(grid);
+            subjectInput.insertAdjacentElement("afterend", wrapper);
+            renderSubjects();
+          });
+        }
+
         function runEnhancements() {
           fields.forEach((item) => {
-            document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) =>
-              enhanceUploadInput(input, item)
-            );
+            document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) => enhanceUploadInput(input, item));
           });
           addLoginTypeSelector();
+          enhanceStaffId();
+          enhanceStaffRole();
+          enhanceSubjects();
         }
 
         const observer = new MutationObserver(runEnhancements);
