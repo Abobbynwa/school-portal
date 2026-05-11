@@ -3,10 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="A modern school management portal for Admin, Staff, and Student workflows."
-    />
+    <meta name="description" content="A modern school management portal for Admin, Staff, and Student workflows." />
     <title>School Management Portal</title>
   </head>
   <body>
@@ -22,7 +19,6 @@
       (function () {
         const config = window.__SCHOOL_PORTAL_UPLOAD_CONFIG__ || {};
         const missing = (value) => !value || String(value).includes("%VITE_");
-
         const fields = [
           { placeholder: "Passport photo URL", label: "Upload Passport Photo", folder: "student-passports", accept: "image/*" },
           { placeholder: "Staff photo URL", label: "Upload Staff Photo", folder: "staff-photos", accept: "image/*" },
@@ -30,16 +26,15 @@
           { placeholder: "Report-card PDF URL", label: "Upload Report-card PDF", folder: "report-cards", accept: "application/pdf" },
           { placeholder: "Attachment URL", label: "Upload Assignment Attachment", folder: "assignments", accept: "image/*,application/pdf,.doc,.docx" },
         ];
-
         const teachingRoles = ["Form Teacher", "Subject Teacher", "Class Teacher", "Head Teacher", "Principal", "Vice Principal"];
         const nonTeachingRoles = ["Bursar", "Secretary", "Account Officer", "Registrar", "Librarian", "School Nurse", "ICT Officer", "Security Officer", "Driver", "Cleaner", "Store Keeper"];
         const juniorSubjects = ["Mathematics", "English Language", "Basic Science", "Basic Technology", "Social Studies", "Civic Education", "Business Studies", "Computer Studies", "Agricultural Science", "Christian Religious Studies", "French", "Physical and Health Education", "Creative Arts"];
         const seniorSubjects = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics", "Government", "Literature in English", "Commerce", "Accounting", "Geography", "Civic Education", "Computer Studies", "Agricultural Science", "Christian Religious Studies"];
-
         let lastPopupText = "";
 
         function setReactInputValue(input, value) {
-          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+          if (!input) return;
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set || Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set || Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value")?.set;
           setter.call(input, value);
           input.dispatchEvent(new Event("input", { bubbles: true }));
           input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -57,10 +52,7 @@
             headers: { apikey: config.anonKey, Authorization: `Bearer ${config.anonKey}`, "Content-Type": file.type || "application/octet-stream", "x-upsert": "true" },
             body: file,
           });
-          if (!response.ok) {
-            const text = await response.text().catch(() => "");
-            throw new Error(text || "Upload failed. Check Supabase bucket policy.");
-          }
+          if (!response.ok) throw new Error((await response.text().catch(() => "")) || "Upload failed. Check Supabase bucket policy.");
           return `${config.supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
         }
 
@@ -68,25 +60,11 @@
           if (!message || message === lastPopupText) return;
           lastPopupText = message;
           document.querySelector(".portalSuccessOverlay")?.remove();
-
           const overlay = document.createElement("div");
           overlay.className = "portalSuccessOverlay";
-          overlay.innerHTML = `
-            <div class="portalSuccessModal">
-              <div class="portalSuccessIcon">✓</div>
-              <h2>Successfully Registered</h2>
-              <p>${message}</p>
-              <div class="portalSuccessActions">
-                <a href="#records">View Entered Records</a>
-                <button type="button">Continue</button>
-              </div>
-            </div>
-          `;
-
+          overlay.innerHTML = `<div class="portalSuccessModal"><div class="portalSuccessIcon">✓</div><h2>Successfully Completed</h2><p>${message}</p><div class="portalSuccessActions"><a href="#records">View Entered Records</a><button type="button">Continue</button></div></div>`;
           overlay.querySelector("button").addEventListener("click", () => overlay.remove());
-          overlay.addEventListener("click", (event) => {
-            if (event.target === overlay) overlay.remove();
-          });
+          overlay.addEventListener("click", (event) => { if (event.target === overlay) overlay.remove(); });
           document.body.appendChild(overlay);
           setTimeout(() => overlay.classList.add("show"), 20);
         }
@@ -95,9 +73,7 @@
           const box = document.querySelector(".successBox");
           if (!box) return;
           const text = box.textContent.trim();
-          if (/staff|student|payment|fee|grade|result|announcement|message|saved|registered|created|uploaded|published/i.test(text)) {
-            showSuccessModal(text);
-          }
+          if (/staff|student|payment|fee|grade|result|announcement|message|saved|registered|created|uploaded|published/i.test(text)) showSuccessModal(text);
         }
 
         function addRecordsShortcut() {
@@ -118,8 +94,7 @@
           textInput.type = "hidden";
           const box = document.createElement("div");
           box.className = "fileUploadBox";
-          const label = document.createElement("label");
-          label.textContent = item.label;
+          box.innerHTML = `<label>${item.label}</label>`;
           const input = document.createElement("input");
           input.type = "file";
           input.accept = item.accept;
@@ -138,7 +113,6 @@
               status.style.color = "#991b1b";
             }
           });
-          box.appendChild(label);
           box.appendChild(input);
           box.appendChild(status);
           textInput.insertAdjacentElement("afterend", box);
@@ -258,12 +232,76 @@
           });
         }
 
+        function collectEmailsFromRecords(type) {
+          const records = Array.from(document.querySelectorAll("#records .record, .classSection .record"));
+          const emails = new Set();
+          records.forEach((record) => {
+            const text = record.textContent || "";
+            const found = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
+            found.forEach((email) => {
+              const lower = email.toLowerCase();
+              if (type === "staff" && /staff|teacher|principal|bursar|secretary|officer|librarian|nurse|driver|cleaner|security/i.test(text)) emails.add(lower);
+              if (type === "students" && /parent|guardian|genotype|subjects|jss|ss\d|student/i.test(text)) emails.add(lower);
+              if (type === "parents" && /parent|guardian/i.test(text)) emails.add(lower);
+              if (type === "all") emails.add(lower);
+            });
+          });
+          return Array.from(emails);
+        }
+
+        function enhanceAnnouncements() {
+          const titleInput = document.querySelector('input[placeholder="Title"]');
+          if (!titleInput) return;
+          const card = titleInput.closest(".formCard");
+          if (!card || card.dataset.announcementEnhanced === "true") return;
+          const heading = card.querySelector(".formTitle h3");
+          if (!heading || !/announcement/i.test(heading.textContent)) return;
+          card.dataset.announcementEnhanced = "true";
+          card.classList.add("announcementPanel");
+
+          const targetSelect = Array.from(card.querySelectorAll("select")).find((select) => Array.from(select.options).some((option) => /all|staff|student|parent/i.test(option.textContent)));
+          if (!targetSelect) return;
+
+          const info = document.createElement("div");
+          info.className = "announcementHelper";
+          info.innerHTML = `<strong>Recipient Preview</strong><span>Select audience to preview matching emails from saved records.</span><div class="recipientChips"></div>`;
+          targetSelect.insertAdjacentElement("afterend", info);
+
+          const chips = info.querySelector(".recipientChips");
+          const updatePreview = () => {
+            const selected = (targetSelect.value || targetSelect.options[targetSelect.selectedIndex]?.text || "all").toLowerCase();
+            let type = "all";
+            if (selected.includes("parent")) type = "parents";
+            if (selected.includes("staff")) type = "staff";
+            if (selected.includes("student")) type = "students";
+            const emails = collectEmailsFromRecords(type);
+            chips.innerHTML = "";
+            if (!emails.length) {
+              chips.innerHTML = `<em>No ${type === "all" ? "recipient" : type} email found yet. Add records first or refresh after saving.</em>`;
+              return;
+            }
+            emails.slice(0, 12).forEach((email) => {
+              const chip = document.createElement("span");
+              chip.textContent = email;
+              chips.appendChild(chip);
+            });
+            if (emails.length > 12) {
+              const more = document.createElement("span");
+              more.textContent = `+${emails.length - 12} more`;
+              chips.appendChild(more);
+            }
+          };
+          targetSelect.addEventListener("change", updatePreview);
+          updatePreview();
+        }
+
         function runEnhancements() {
           fields.forEach((item) => document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) => enhanceUploadInput(input, item)));
           addLoginTypeSelector();
           enhanceStaffId();
           enhanceStaffRole();
           enhanceSubjects();
+          enhanceAnnouncements();
           addRecordsShortcut();
           watchSuccessMessages();
         }
