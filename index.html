@@ -9,6 +9,7 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-YcsIPGdhPK4P/uRW3/sruonlYj+qR9FOcxzOyfFZ0/6QU3c5Q5kQ3f5/5lvHqD9WPE5JQZ7YvIq8QfqH7w8QmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
       window.__SCHOOL_PORTAL_UPLOAD_CONFIG__ = {
         supabaseUrl: "%VITE_SUPABASE_URL%",
@@ -19,25 +20,38 @@
       (function () {
         const config = window.__SCHOOL_PORTAL_UPLOAD_CONFIG__ || {};
         const missing = (value) => !value || String(value).includes("%VITE_");
-        const fields = [
+
+        const teachingRoles = ["Form Teacher", "Subject Teacher", "Class Teacher", "Head Teacher", "Principal", "Vice Principal"];
+        const nonTeachingRoles = ["Bursar", "Secretary", "Account Officer", "Registrar", "Librarian", "School Nurse", "ICT Officer", "Security Officer", "Driver", "Cleaner", "Store Keeper"];
+        const juniorSubjects = ["Mathematics", "English Language", "Basic Science", "Basic Technology", "Social Studies", "Civic Education", "Business Studies", "Computer Studies", "Agricultural Science", "Christian Religious Studies", "French", "Physical and Health Education", "Creative Arts"];
+        const seniorSubjects = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics", "Government", "Literature in English", "Commerce", "Accounting", "Geography", "Civic Education", "Computer Studies", "Agricultural Science", "Christian Religious Studies"];
+        const uploadFields = [
           { placeholder: "Passport photo URL", label: "Upload Passport Photo", folder: "student-passports", accept: "image/*" },
           { placeholder: "Staff photo URL", label: "Upload Staff Photo", folder: "staff-photos", accept: "image/*" },
           { placeholder: "Receipt URL", label: "Upload Payment Receipt", folder: "payment-receipts", accept: "image/*,application/pdf" },
           { placeholder: "Report-card PDF URL", label: "Upload Report-card PDF", folder: "report-cards", accept: "application/pdf" },
           { placeholder: "Attachment URL", label: "Upload Assignment Attachment", folder: "assignments", accept: "image/*,application/pdf,.doc,.docx" },
         ];
-        const teachingRoles = ["Form Teacher", "Subject Teacher", "Class Teacher", "Head Teacher", "Principal", "Vice Principal"];
-        const nonTeachingRoles = ["Bursar", "Secretary", "Account Officer", "Registrar", "Librarian", "School Nurse", "ICT Officer", "Security Officer", "Driver", "Cleaner", "Store Keeper"];
-        const juniorSubjects = ["Mathematics", "English Language", "Basic Science", "Basic Technology", "Social Studies", "Civic Education", "Business Studies", "Computer Studies", "Agricultural Science", "Christian Religious Studies", "French", "Physical and Health Education", "Creative Arts"];
-        const seniorSubjects = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics", "Government", "Literature in English", "Commerce", "Accounting", "Geography", "Civic Education", "Computer Studies", "Agricultural Science", "Christian Religious Studies"];
         let lastPopupText = "";
 
-        function setReactInputValue(input, value) {
+        function setReactValue(input, value) {
           if (!input) return;
-          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set || Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set || Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value")?.set;
-          setter.call(input, value);
+          const proto = input.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : input.tagName === "SELECT" ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
+          const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+          if (setter) setter.call(input, value);
+          else input.value = value;
           input.dispatchEvent(new Event("input", { bubbles: true }));
           input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        function gradeInfo(score) {
+          const total = Number(score) || 0;
+          if (total >= 70) return { grade: "A", remark: "Excellent" };
+          if (total >= 60) return { grade: "B", remark: "Very Good" };
+          if (total >= 50) return { grade: "C", remark: "Good" };
+          if (total >= 45) return { grade: "D", remark: "Pass" };
+          if (total >= 40) return { grade: "E", remark: "Fair" };
+          return { grade: "F", remark: "Fail" };
         }
 
         async function uploadToSupabase(file, folder, status) {
@@ -46,10 +60,15 @@
           const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
           const path = `${folder}/${Date.now()}-${safeName}`;
           const endpoint = `${config.supabaseUrl}/storage/v1/object/${bucket}/${path}`;
-          status.textContent = "Uploading...";
+          if (status) status.textContent = "Uploading...";
           const response = await fetch(endpoint, {
             method: "POST",
-            headers: { apikey: config.anonKey, Authorization: `Bearer ${config.anonKey}`, "Content-Type": file.type || "application/octet-stream", "x-upsert": "true" },
+            headers: {
+              apikey: config.anonKey,
+              Authorization: `Bearer ${config.anonKey}`,
+              "Content-Type": file.type || "application/octet-stream",
+              "x-upsert": "true",
+            },
             body: file,
           });
           if (!response.ok) throw new Error((await response.text().catch(() => "")) || "Upload failed. Check Supabase bucket policy.");
@@ -76,18 +95,6 @@
           if (/staff|student|payment|fee|grade|result|announcement|message|saved|registered|created|uploaded|published/i.test(text)) showSuccessModal(text);
         }
 
-        function addRecordsShortcut() {
-          const statusCard = document.querySelector(".apiStatusCard");
-          if (!statusCard || statusCard.dataset.recordsShortcut === "true") return;
-          const actions = statusCard.querySelector(".inlineActions") || statusCard;
-          statusCard.dataset.recordsShortcut = "true";
-          const link = document.createElement("a");
-          link.href = "#records";
-          link.className = "recordsShortcutBtn";
-          link.textContent = "View Entered Records";
-          actions.prepend(link);
-        }
-
         function enhanceUploadInput(textInput, item) {
           if (!textInput || textInput.dataset.uploadEnhanced === "true") return;
           textInput.dataset.uploadEnhanced = "true";
@@ -105,7 +112,7 @@
             if (!file) return;
             try {
               const url = await uploadToSupabase(file, item.folder, status);
-              setReactInputValue(textInput, url);
+              setReactValue(textInput, url);
               status.textContent = "Uploaded successfully.";
               status.style.color = "#166534";
             } catch (error) {
@@ -116,6 +123,18 @@
           box.appendChild(input);
           box.appendChild(status);
           textInput.insertAdjacentElement("afterend", box);
+        }
+
+        function addRecordsShortcut() {
+          const statusCard = document.querySelector(".apiStatusCard");
+          if (!statusCard || statusCard.dataset.recordsShortcut === "true") return;
+          const actions = statusCard.querySelector(".inlineActions") || statusCard;
+          statusCard.dataset.recordsShortcut = "true";
+          const link = document.createElement("a");
+          link.href = "#records";
+          link.className = "recordsShortcutBtn";
+          link.textContent = "View Entered Records";
+          actions.prepend(link);
         }
 
         function addLoginTypeSelector() {
@@ -145,7 +164,7 @@
             input.readOnly = true;
             input.placeholder = "Staff ID auto-generated";
             input.style.background = "#eef6ff";
-            if (!input.value) setReactInputValue(input, `STF-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
+            if (!input.value) setReactValue(input, `STF-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
             const hint = document.createElement("small");
             hint.className = "uploadHint";
             hint.textContent = "Staff ID is generated automatically by the portal.";
@@ -161,8 +180,7 @@
             const classSelect = Array.from(roleInput.closest("form")?.querySelectorAll("select") || []).find((select) => Array.from(select.options).some((option) => option.textContent.trim() === "Non-teaching"));
             const wrapper = document.createElement("div");
             wrapper.className = "fileUploadBox";
-            const label = document.createElement("label");
-            label.textContent = "Staff Role";
+            wrapper.innerHTML = `<label>Staff Role</label>`;
             const category = document.createElement("select");
             category.innerHTML = '<option value="teaching">Teaching Staff</option><option value="non-teaching">Non-teaching Staff</option>';
             const roleSelect = document.createElement("select");
@@ -170,15 +188,14 @@
               const isNonTeaching = category.value === "non-teaching";
               const roles = isNonTeaching ? nonTeachingRoles : teachingRoles;
               roleSelect.innerHTML = roles.map((role) => `<option value="${role}">${role}</option>`).join("");
-              setReactInputValue(roleInput, roles[0]);
+              setReactValue(roleInput, roles[0]);
               if (classSelect) {
                 classSelect.value = isNonTeaching ? "Non-teaching" : classSelect.value === "Non-teaching" ? "JSS1" : classSelect.value;
                 classSelect.dispatchEvent(new Event("change", { bubbles: true }));
               }
             };
             category.addEventListener("change", renderRoles);
-            roleSelect.addEventListener("change", () => setReactInputValue(roleInput, roleSelect.value));
-            wrapper.appendChild(label);
+            roleSelect.addEventListener("change", () => setReactValue(roleInput, roleSelect.value));
             wrapper.appendChild(category);
             wrapper.appendChild(roleSelect);
             roleInput.insertAdjacentElement("afterend", wrapper);
@@ -195,13 +212,12 @@
             const classSelect = Array.from(form?.querySelectorAll("select") || []).find((select) => Array.from(select.options).some((option) => ["JSS1", "SS1", "Non-teaching"].includes(option.textContent.trim())));
             const wrapper = document.createElement("div");
             wrapper.className = "fileUploadBox";
-            const label = document.createElement("label");
-            label.textContent = "Select Subjects";
+            wrapper.innerHTML = `<label>Select Subjects</label>`;
             const grid = document.createElement("div");
             grid.style.display = "grid";
             grid.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
             grid.style.gap = "8px";
-            const updateHiddenValue = () => setReactInputValue(subjectInput, Array.from(grid.querySelectorAll('input[type="checkbox"]:checked')).map((item) => item.value).join(", "));
+            const updateHiddenValue = () => setReactValue(subjectInput, Array.from(grid.querySelectorAll('input[type="checkbox"]:checked')).map((item) => item.value).join(", "));
             const renderSubjects = () => {
               const classValue = classSelect?.value || "JSS1";
               const list = classValue.startsWith("SS") ? seniorSubjects : juniorSubjects;
@@ -225,10 +241,159 @@
               updateHiddenValue();
             };
             if (classSelect) classSelect.addEventListener("change", renderSubjects);
-            wrapper.appendChild(label);
             wrapper.appendChild(grid);
             subjectInput.insertAdjacentElement("afterend", wrapper);
             renderSubjects();
+          });
+        }
+
+        function findResultForms() {
+          return Array.from(document.querySelectorAll(".formCard")).filter((card) => {
+            const text = card.textContent || "";
+            return /upload result|upload grade|result\/grade|result for my class/i.test(text) && card.querySelector('input[placeholder="Subject"], input[placeholder="subject"]');
+          });
+        }
+
+        function getSelectedStudentText(card) {
+          const select = card.querySelector("select");
+          return select?.options[select.selectedIndex]?.textContent?.trim() || "Student";
+        }
+
+        function createResultSlipHTML(data) {
+          const rows = data.subjects.map((item, index) => {
+            const g = gradeInfo(item.total);
+            return `<tr><td>${index + 1}</td><td>${item.subject}</td><td>${item.ca}</td><td>${item.test}</td><td>${item.exam}</td><td>${item.total}</td><td>${g.grade}</td><td>${g.remark}</td><td>${data.teacher || "-"}</td></tr>`;
+          }).join("");
+          const grand = data.subjects.reduce((sum, item) => sum + Number(item.total || 0), 0);
+          const average = data.subjects.length ? (grand / data.subjects.length).toFixed(2) : "0.00";
+          return `
+            <div class="resultSlipPaper">
+              <div class="resultTop"><div>📘</div><div><h2>${data.schoolName}</h2><p>${data.schoolAddress}</p><p>${data.term} Examination Result</p></div><div>🇳🇬</div></div>
+              <div class="studentMeta"><div><b>Name:</b> ${data.student}</div><div><b>Class:</b> ${data.className}</div><div><b>Term:</b> ${data.term}</div><div><b>Session:</b> ${data.session}</div><div><b>Position:</b> ${data.position}</div><div><b>Average:</b> ${average}%</div></div>
+              <table class="resultTable"><thead><tr><th>#</th><th>Subject</th><th>CA</th><th>Test</th><th>Exam</th><th>Total</th><th>Grade</th><th>Remark</th><th>Teacher</th></tr></thead><tbody>${rows}</tbody></table>
+              <div class="assessmentGrid"><div><h3>Key to Grades</h3><p>A 70-100 Excellent</p><p>B 60-69 Very Good</p><p>C 50-59 Good</p><p>D 45-49 Pass</p><p>F 0-39 Fail</p></div><div><h3>Affective Skills</h3><p>Punctuality: ${data.punctuality}</p><p>Neatness: ${data.neatness}</p><p>Politeness: ${data.politeness}</p></div><div><h3>Psychomotor Skills</h3><p>Handwriting: ${data.handwriting}</p><p>Sports: ${data.sports}</p><p>Creativity: ${data.creativity}</p></div></div>
+              <div class="comments"><p><b>Form Teacher's Comment:</b> ${data.teacherComment}</p><p><b>Principal's Comment:</b> ${data.principalComment}</p><p><b>Next Term Begins:</b> ${data.nextTerm}</p></div>
+              <div class="signatures"><span>Form Teacher Signature</span><span>Principal Signature</span></div>
+            </div>`;
+        }
+
+        function enhanceResultForms() {
+          findResultForms().forEach((card) => {
+            if (card.dataset.resultSheetEnhanced === "true") return;
+            card.dataset.resultSheetEnhanced = "true";
+            card.classList.add("resultSheetPanel");
+            const subjectInput = card.querySelector('input[placeholder="Subject"], input[placeholder="subject"]');
+            const scoreInput = card.querySelector('input[type="number"]');
+            const reportUrlInput = card.querySelector('input[placeholder="Report-card PDF URL"]');
+            const controls = document.createElement("div");
+            controls.className = "resultSheetBuilder";
+            controls.innerHTML = `
+              <h3>Printable Result Slip Builder</h3>
+              <div class="resultMiniGrid">
+                <input data-rs="schoolName" placeholder="School name" value="SchoolPortal Academy" />
+                <input data-rs="schoolAddress" placeholder="School address" value="Lagos, Nigeria" />
+                <input data-rs="session" placeholder="Session e.g. 2025/2026" value="2025/2026" />
+                <input data-rs="position" placeholder="Position e.g. 1st" />
+                <input data-rs="teacher" placeholder="Subject/Form teacher" />
+                <input data-rs="nextTerm" placeholder="Next term begins" />
+                <input data-rs="ca" type="number" placeholder="Continuous Assessment" min="0" max="20" />
+                <input data-rs="test" type="number" placeholder="Mid-term Test" min="0" max="20" />
+                <input data-rs="exam" type="number" placeholder="Examination" min="0" max="60" />
+                <input data-rs="total" type="number" placeholder="Total score" readonly />
+                <input data-rs="grade" placeholder="Grade" readonly />
+                <input data-rs="remark" placeholder="Remark" readonly />
+              </div>
+              <div class="resultMiniGrid">
+                <select data-rs="punctuality"><option>Punctuality 5</option><option>Punctuality 4</option><option>Punctuality 3</option><option>Punctuality 2</option><option>Punctuality 1</option></select>
+                <select data-rs="neatness"><option>Neatness 5</option><option>Neatness 4</option><option>Neatness 3</option><option>Neatness 2</option><option>Neatness 1</option></select>
+                <select data-rs="politeness"><option>Politeness 5</option><option>Politeness 4</option><option>Politeness 3</option><option>Politeness 2</option><option>Politeness 1</option></select>
+                <select data-rs="handwriting"><option>Hand Writing 5</option><option>Hand Writing 4</option><option>Hand Writing 3</option><option>Hand Writing 2</option><option>Hand Writing 1</option></select>
+                <select data-rs="sports"><option>Sports 5</option><option>Sports 4</option><option>Sports 3</option><option>Sports 2</option><option>Sports 1</option></select>
+                <select data-rs="creativity"><option>Creativity 5</option><option>Creativity 4</option><option>Creativity 3</option><option>Creativity 2</option><option>Creativity 1</option></select>
+              </div>
+              <textarea data-rs="teacherComment" placeholder="Form teacher comment">Excellent result. Keep it up.</textarea>
+              <textarea data-rs="principalComment" placeholder="Principal comment">Excellent.</textarea>
+              <div class="resultActions"><button type="button" data-action="preview-result">Preview Result Slip</button><button type="button" data-action="upload-pdf">Generate PDF + Upload to Bucket</button></div>
+              <small class="resultStatus">Fill CA, test and exam. Total, grade and remark will calculate automatically.</small>
+            `;
+            card.appendChild(controls);
+
+            const get = (key) => controls.querySelector(`[data-rs="${key}"]`);
+            const status = controls.querySelector(".resultStatus");
+            const syncTotal = () => {
+              const ca = Number(get("ca").value || 0);
+              const test = Number(get("test").value || 0);
+              const exam = Number(get("exam").value || 0);
+              const total = Math.min(100, ca + test + exam);
+              const g = gradeInfo(total);
+              get("total").value = total;
+              get("grade").value = g.grade;
+              get("remark").value = g.remark;
+              if (scoreInput) setReactValue(scoreInput, total);
+            };
+            ["ca", "test", "exam"].forEach((key) => get(key).addEventListener("input", syncTotal));
+            syncTotal();
+
+            const collectData = () => {
+              const studentText = getSelectedStudentText(card);
+              const classMatch = studentText.match(/JSS\d|SS\d/i);
+              const subject = subjectInput?.value || "Subject";
+              const ca = Number(get("ca").value || 0);
+              const test = Number(get("test").value || 0);
+              const exam = Number(get("exam").value || 0);
+              const total = Number(get("total").value || 0);
+              return {
+                schoolName: get("schoolName").value || "SchoolPortal Academy",
+                schoolAddress: get("schoolAddress").value || "Lagos, Nigeria",
+                student: studentText,
+                className: classMatch ? classMatch[0].toUpperCase() : "Class",
+                term: Array.from(card.querySelectorAll("select")).pop()?.value || "First Term",
+                session: get("session").value || "2025/2026",
+                position: get("position").value || "-",
+                teacher: get("teacher").value || "Teacher",
+                nextTerm: get("nextTerm").value || "To be announced",
+                punctuality: get("punctuality").value.replace("Punctuality ", ""),
+                neatness: get("neatness").value.replace("Neatness ", ""),
+                politeness: get("politeness").value.replace("Politeness ", ""),
+                handwriting: get("handwriting").value.replace("Hand Writing ", ""),
+                sports: get("sports").value.replace("Sports ", ""),
+                creativity: get("creativity").value.replace("Creativity ", ""),
+                teacherComment: get("teacherComment").value,
+                principalComment: get("principalComment").value,
+                subjects: [{ subject, ca, test, exam, total }],
+              };
+            };
+
+            const openPreview = () => {
+              document.querySelector(".resultPreviewOverlay")?.remove();
+              const overlay = document.createElement("div");
+              overlay.className = "resultPreviewOverlay";
+              overlay.innerHTML = `<div class="resultPreviewModal"><div class="resultPreviewTop"><h2>Printable Result Slip</h2><button type="button">Close</button></div>${createResultSlipHTML(collectData())}<div class="resultActions"><button type="button" class="printBtn">Print / Save as PDF</button></div></div>`;
+              overlay.querySelector("button").addEventListener("click", () => overlay.remove());
+              overlay.querySelector(".printBtn").addEventListener("click", () => window.print());
+              document.body.appendChild(overlay);
+            };
+
+            controls.querySelector('[data-action="preview-result"]').addEventListener("click", openPreview);
+            controls.querySelector('[data-action="upload-pdf"]').addEventListener("click", async () => {
+              try {
+                if (!window.html2pdf) throw new Error("PDF engine is still loading. Wait a few seconds and try again.");
+                status.textContent = "Generating PDF...";
+                const holder = document.createElement("div");
+                holder.innerHTML = createResultSlipHTML(collectData());
+                document.body.appendChild(holder);
+                const pdfBlob = await window.html2pdf().set({ margin: 0.25, filename: "result-slip.pdf", image: { type: "jpeg", quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: "in", format: "a4", orientation: "portrait" } }).from(holder.firstElementChild).outputPdf("blob");
+                holder.remove();
+                const file = new File([pdfBlob], `result-slip-${Date.now()}.pdf`, { type: "application/pdf" });
+                const url = await uploadToSupabase(file, "report-cards", status);
+                if (reportUrlInput) setReactValue(reportUrlInput, url);
+                status.textContent = "PDF generated, uploaded to bucket, and attached to this result.";
+                status.style.color = "#166534";
+              } catch (error) {
+                status.textContent = error.message;
+                status.style.color = "#991b1b";
+              }
+            });
           });
         }
 
@@ -258,15 +423,12 @@
           if (!heading || !/announcement/i.test(heading.textContent)) return;
           card.dataset.announcementEnhanced = "true";
           card.classList.add("announcementPanel");
-
           const targetSelect = Array.from(card.querySelectorAll("select")).find((select) => Array.from(select.options).some((option) => /all|staff|student|parent/i.test(option.textContent)));
           if (!targetSelect) return;
-
           const info = document.createElement("div");
           info.className = "announcementHelper";
           info.innerHTML = `<strong>Recipient Preview</strong><span>Select audience to preview matching emails from saved records.</span><div class="recipientChips"></div>`;
           targetSelect.insertAdjacentElement("afterend", info);
-
           const chips = info.querySelector(".recipientChips");
           const updatePreview = () => {
             const selected = (targetSelect.value || targetSelect.options[targetSelect.selectedIndex]?.text || "all").toLowerCase();
@@ -296,11 +458,12 @@
         }
 
         function runEnhancements() {
-          fields.forEach((item) => document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) => enhanceUploadInput(input, item)));
+          uploadFields.forEach((item) => document.querySelectorAll(`input[placeholder="${item.placeholder}"]`).forEach((input) => enhanceUploadInput(input, item)));
           addLoginTypeSelector();
           enhanceStaffId();
           enhanceStaffRole();
           enhanceSubjects();
+          enhanceResultForms();
           enhanceAnnouncements();
           addRecordsShortcut();
           watchSuccessMessages();
