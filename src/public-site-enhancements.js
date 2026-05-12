@@ -1,4 +1,18 @@
 const PUBLIC_SCHOOL_EMAIL = import.meta.env.VITE_SCHOOL_EMAIL || "info@schoolportal.com";
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || "#admin";
+
+function isPortalHost() {
+  return window.location.hostname.startsWith("portal.");
+}
+
+function applyDomainMode() {
+  document.body.classList.toggle("portalHost", isPortalHost());
+  document.body.classList.toggle("publicHost", !isPortalHost());
+
+  if (isPortalHost() && !window.location.hash) {
+    window.location.hash = "#admin";
+  }
+}
 
 function addPublicSiteStyles() {
   if (document.getElementById("public-site-enhancements-css")) return;
@@ -6,7 +20,11 @@ function addPublicSiteStyles() {
   style.id = "public-site-enhancements-css";
   style.textContent = `
     .navLinks a[href="#records"]{display:none!important}
-    .navLinks a[href="#admin"]{display:inline-flex!important}
+    .publicHost .navLinks a[href="#admin"]{display:none!important}
+    .portalHost .publicSchoolSite,.portalHost #about,.portalHost #news,.portalHost #gallery,.portalHost #admission-public,.portalHost #contact{display:none!important}
+    .portalHost .navLinks a:not([href="#admin"]){display:none!important}
+    .portalHost .navLinks a[href="#admin"]{display:inline-flex!important}
+    .portalHost .hero{min-height:45vh!important}
     .publicSchoolSite{max-width:1180px;margin:-60px auto 70px;padding:0 24px;position:relative;z-index:6;display:grid;gap:26px}
     .publicHeroCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
     .publicHeroCard,.publicSection{background:white;border:1px solid #dbeafe;border-radius:28px;padding:28px;box-shadow:0 24px 65px rgba(15,23,42,.09)}
@@ -71,7 +89,7 @@ function buildPublicViews() {
       <div class="publicSectionHeader"><div><span class="publicBadge">Contact</span><h2>Contact the School</h2><p>Reach the school for admission, fees, academic records and general enquiries.</p></div></div>
       <div class="contactGrid">
         <div class="publicInfoBox"><h3>Contact Details</h3><p class="publicContactLine"><span class="publicContactIcon">@</span>${PUBLIC_SCHOOL_EMAIL}</p><p class="publicContactLine"><span class="publicContactIcon">☎</span>+234 800 000 0000</p><p class="publicContactLine"><span class="publicContactIcon">⌂</span>Lagos, Nigeria</p></div>
-        <div class="publicInfoBox"><h3>Portal Access</h3><p>Admin and staff can log in through the protected dashboard to manage student records, results, fees, assignments and announcements.</p><p><a class="primaryBtn" href="#admin">Open Portal Login</a></p></div>
+        <div class="publicInfoBox"><h3>Portal Access</h3><p>Admin and staff use the secure portal subdomain to manage student records, results, fees, assignments and announcements.</p><p><a class="primaryBtn" href="${PORTAL_URL}">Open Portal Login</a></p></div>
       </div>
     </section>
   `;
@@ -83,15 +101,16 @@ function upgradeNavLinks() {
   const nav = document.querySelector(".navLinks");
   if (!nav || nav.dataset.publicNav === "true") return;
   nav.dataset.publicNav = "true";
-  nav.innerHTML = `
-    <a href="#home">Home</a>
-    <a href="#about">About</a>
-    <a href="#news">News</a>
-    <a href="#gallery">Gallery</a>
-    <a href="#admission-public">Admission</a>
-    <a href="#contact">Contact</a>
-    <a href="#admin">Portal Login</a>
-  `;
+  nav.innerHTML = isPortalHost()
+    ? `<a href="#admin">Portal Login</a>`
+    : `
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#news">News</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#admission-public">Admission</a>
+      <a href="#contact">Contact</a>
+    `;
 }
 
 function showAdmissionMailNotice(email, studentName) {
@@ -117,6 +136,7 @@ function watchAdmissionSubmit() {
 }
 
 function runPublicEnhancements() {
+  applyDomainMode();
   addPublicSiteStyles();
   upgradeNavLinks();
   buildPublicViews();
