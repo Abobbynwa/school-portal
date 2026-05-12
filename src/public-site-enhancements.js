@@ -1,17 +1,83 @@
 const PUBLIC_SCHOOL_EMAIL = import.meta.env.VITE_SCHOOL_EMAIL || "info@schoolportal.com";
-const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || "#admin";
+const PORTAL_URL = import.meta.env.VITE_PORTAL_URL || "/admin";
+
+const PATH_TO_HASH = {
+  "/": "#home",
+  "/public": "#home",
+  "/home": "#home",
+  "/about": "#about",
+  "/news": "#news",
+  "/gallery": "#gallery",
+  "/admission": "#admission",
+  "/apply": "#admission",
+  "/contact": "#contact",
+  "/admin": "#admin",
+  "/portal": "#admin",
+  "/records": "#records",
+};
 
 function isPortalHost() {
   return window.location.hostname.startsWith("portal.");
 }
 
-function applyDomainMode() {
-  document.body.classList.toggle("portalHost", isPortalHost());
-  document.body.classList.toggle("publicHost", !isPortalHost());
+function isPortalPath() {
+  return ["/admin", "/portal", "/records"].includes(window.location.pathname);
+}
 
-  if (isPortalHost() && !window.location.hash) {
-    window.location.hash = "#admin";
+function isPortalMode() {
+  return isPortalHost() || isPortalPath();
+}
+
+function cleanPathFromHash(hash) {
+  const match = Object.entries(PATH_TO_HASH).find(([, value]) => value === hash);
+  return match?.[0] || "/";
+}
+
+function activatePathMode() {
+  const cleanHash = PATH_TO_HASH[window.location.pathname];
+  if (!cleanHash) return;
+
+  if (window.location.hash !== cleanHash) {
+    window.location.hash = cleanHash;
   }
+
+  setTimeout(() => {
+    if (window.location.hash) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, 80);
+}
+
+function navigateClean(path) {
+  const hash = PATH_TO_HASH[path] || "#home";
+  if (window.location.hash !== hash) window.location.hash = hash;
+  window.history.pushState({}, "", path);
+  const target = document.querySelector(hash);
+  if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function upgradeCleanLinks(scope = document) {
+  scope.querySelectorAll("a[href^='#']").forEach((a) => {
+    if (a.dataset.cleanLink === "true") return;
+    const path = cleanPathFromHash(a.getAttribute("href"));
+    a.dataset.cleanLink = "true";
+    a.setAttribute("href", path);
+    a.addEventListener("click", (event) => {
+      event.preventDefault();
+      navigateClean(path);
+    });
+  });
+}
+
+function applyDomainMode() {
+  document.body.classList.toggle("portalHost", isPortalMode());
+  document.body.classList.toggle("publicHost", !isPortalMode());
+
+  if (isPortalHost() && window.location.pathname === "/") {
+    window.history.replaceState({}, "", "/admin");
+  }
+
+  activatePathMode();
 }
 
 function addPublicSiteStyles() {
@@ -19,11 +85,11 @@ function addPublicSiteStyles() {
   const style = document.createElement("style");
   style.id = "public-site-enhancements-css";
   style.textContent = `
-    .navLinks a[href="#records"]{display:none!important}
-    .publicHost .navLinks a[href="#admin"]{display:none!important}
+    .navLinks a[href="#records"],.navLinks a[href="/records"]{display:none!important}
+    .publicHost .navLinks a[href="#admin"],.publicHost .navLinks a[href="/admin"]{display:none!important}
     .portalHost .publicSchoolSite,.portalHost #about,.portalHost #news,.portalHost #gallery,.portalHost #admission-public,.portalHost #contact{display:none!important}
-    .portalHost .navLinks a:not([href="#admin"]){display:none!important}
-    .portalHost .navLinks a[href="#admin"]{display:inline-flex!important}
+    .portalHost .navLinks a:not([href="/admin"]):not([href="#admin"]){display:none!important}
+    .portalHost .navLinks a[href="/admin"],.portalHost .navLinks a[href="#admin"]{display:inline-flex!important}
     .portalHost .hero{min-height:45vh!important}
     .publicSchoolSite{max-width:1180px;margin:-60px auto 70px;padding:0 24px;position:relative;z-index:6;display:grid;gap:26px}
     .publicHeroCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
@@ -82,7 +148,7 @@ function buildPublicViews() {
 
     <section id="admission-public" class="publicSection">
       <div class="publicSectionHeader"><div><span class="publicBadge">Admission</span><h2>Admission/Application</h2><p>Submit a student application online. The parent email entered in the form will be used for the confirmation message.</p></div></div>
-      <div class="publicAdmissionCTA"><div><h3>Ready to apply?</h3><p>Click the button, fill the admission form, and submit. The application will be saved for admin review.</p></div><a href="#admission">Apply for Admission</a></div>
+      <div class="publicAdmissionCTA"><div><h3>Ready to apply?</h3><p>Click the button, fill the admission form, and submit. The application will be saved for admin review.</p></div><a href="/admission">Apply for Admission</a></div>
     </section>
 
     <section id="contact" class="publicSection">
@@ -95,22 +161,24 @@ function buildPublicViews() {
   `;
 
   hero.after(publicSite);
+  upgradeCleanLinks(publicSite);
 }
 
 function upgradeNavLinks() {
   const nav = document.querySelector(".navLinks");
   if (!nav || nav.dataset.publicNav === "true") return;
   nav.dataset.publicNav = "true";
-  nav.innerHTML = isPortalHost()
-    ? `<a href="#admin">Portal Login</a>`
+  nav.innerHTML = isPortalMode()
+    ? `<a href="/admin">Portal Login</a>`
     : `
-      <a href="#home">Home</a>
-      <a href="#about">About</a>
-      <a href="#news">News</a>
-      <a href="#gallery">Gallery</a>
-      <a href="#admission-public">Admission</a>
-      <a href="#contact">Contact</a>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/news">News</a>
+      <a href="/gallery">Gallery</a>
+      <a href="/admission">Admission</a>
+      <a href="/contact">Contact</a>
     `;
+  upgradeCleanLinks(nav);
 }
 
 function showAdmissionMailNotice(email, studentName) {
@@ -140,9 +208,13 @@ function runPublicEnhancements() {
   addPublicSiteStyles();
   upgradeNavLinks();
   buildPublicViews();
+  upgradeCleanLinks();
   watchAdmissionSubmit();
 }
 
+window.addEventListener("popstate", () => {
+  activatePathMode();
+});
 new MutationObserver(runPublicEnhancements).observe(document.documentElement, { childList: true, subtree: true });
 window.addEventListener("load", runPublicEnhancements);
 setInterval(runPublicEnhancements, 1200);
