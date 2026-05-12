@@ -1,159 +1,28 @@
 const JSS_SUBJECTS = ["Mathematics", "English Language", "Basic Science", "Basic Technology", "Social Studies", "Civic Education", "Business Studies", "Computer Studies", "Agricultural Science", "Christian Religious Studies", "Physical and Health Education", "Creative Arts"];
 const SS_SUBJECTS = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics", "Government", "Literature in English", "Commerce", "Accounting", "Geography", "Civic Education", "Computer Studies", "Agricultural Science"];
+const CLASSES = ["JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3"];
 
 function addStudentBrowserStyles() {
   if (document.getElementById("student-browser-css")) return;
   const style = document.createElement("style");
   style.id = "student-browser-css";
   style.textContent = `
-    .publicHost .publicSchoolSite{display:grid!important;grid-template-columns:250px minmax(0,1fr);align-items:start;max-width:1280px!important;gap:22px!important}.publicSideNav{position:sticky;top:20px;background:#020617;color:#e0f2fe;border-radius:24px;padding:18px;box-shadow:0 24px 65px rgba(15,23,42,.18)}.publicSideNav strong{display:block;color:white;margin-bottom:12px;font-size:1.05rem}.publicSideNav a{display:block;padding:11px 12px;border-radius:12px;color:#dbeafe;font-weight:800}.publicSideNav a:hover{background:#1d4ed8;color:white}.publicSiteMain{display:grid;gap:22px}.publicHost .publicHeroCards,.publicHost .publicSection{grid-column:auto!important}.publicHost .publicHeroCards{grid-template-columns:repeat(3,1fr)}
-    .rawClassRecordsHidden .classSection{display:none!important}.rawClassRecordsHidden #records .classSection{display:none!important}.rawClassRecordsHidden .classGrid{display:none!important}
-    .portalStudentBrowser{grid-column:1/-1;background:#fff;border:1px solid #bfdbfe;border-radius:28px;padding:24px;box-shadow:0 22px 60px rgba(15,23,42,.08);display:grid;gap:18px}.portalStudentBrowser h3{margin:0;color:#0f172a;font-size:1.5rem}.studentBrowserTop{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.studentBrowserTop input,.studentBrowserTop select{border:1px solid #cbd5e1;background:#f8fafc;border-radius:12px;padding:12px 14px;font:inherit;min-width:180px}.studentClassTabs{display:flex;gap:10px;flex-wrap:wrap}.studentClassTabs button{border:0;background:#e0f2fe;color:#075985;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}.studentClassTabs button.active{background:#020617;color:white}.studentListGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.studentMiniCard{border:1px solid #e2e8f0;background:#f8fafc;border-radius:18px;padding:16px;text-align:left;cursor:pointer}.studentMiniCard strong{display:block;color:#0f172a;margin-bottom:6px}.studentMiniCard span{display:block;color:#64748b;font-size:.9rem;line-height:1.5}.studentDetailGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.studentDetailGrid div{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.studentDetailActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.studentDetailActions button{border:0;background:#1d4ed8;color:white;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}.subjectPickerBox{border:1px solid #cbd5e1;background:#fff;border-radius:18px;padding:14px;display:grid;gap:10px;margin-top:12px}.subjectPickerGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.subjectPickerGrid label{display:flex;gap:8px;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px;color:#334155;font-size:.88rem}.studentAutoHint{background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;border-radius:14px;padding:12px;font-weight:800}.studentExplorerModal{position:fixed;inset:0;background:rgba(2,6,23,.75);z-index:100000;overflow:auto;padding:26px}.studentExplorerModalInner{max-width:1100px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.35)}.studentExplorerModalTop{display:flex;justify-content:space-between;align-items:center;background:#020617;color:white;border-radius:16px;padding:14px 16px;margin-bottom:16px}.studentExplorerModalTop h2{margin:0}.studentExplorerModalTop button{border:0;background:#38bdf8;color:#082f49;border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}
-    @media(max-width:900px){.publicHost .publicSchoolSite{grid-template-columns:1fr}.publicSideNav{position:relative;top:auto}.studentListGrid,.studentDetailGrid,.subjectPickerGrid{grid-template-columns:1fr 1fr}}
-    @media(max-width:640px){.studentListGrid,.studentDetailGrid,.subjectPickerGrid,.publicHost .publicHeroCards{grid-template-columns:1fr}}
+    .rawClassRecordsHidden .classSection,.rawClassRecordsHidden #records .classSection,.rawClassRecordsHidden .classGrid{display:none!important}
+    .portalRecordsDesk{grid-column:1/-1;background:white;border:1px solid #bfdbfe;border-radius:30px;padding:24px;box-shadow:0 24px 70px rgba(15,23,42,.08);display:grid;gap:18px}.portalRecordsDesk h3{margin:0;color:#0f172a;font-size:1.5rem}.deskTabs{display:flex;gap:10px;flex-wrap:wrap}.deskTabs button{border:0;background:#e0f2fe;color:#075985;border-radius:999px;padding:10px 15px;font-weight:900;cursor:pointer}.deskTabs button.active{background:#020617;color:white}.deskTools{display:flex;gap:12px;flex-wrap:wrap}.deskTools input,.deskTools select{border:1px solid #cbd5e1;background:#f8fafc;border-radius:12px;padding:12px 14px;font:inherit;min-width:180px}.deskClassTabs{display:flex;gap:10px;flex-wrap:wrap}.deskClassTabs button{border:1px solid #dbeafe;background:#f8fafc;color:#0f172a;border-radius:16px;padding:12px 16px;font-weight:900;cursor:pointer}.deskClassTabs button.active{background:#1d4ed8;color:white}.deskGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.deskCard{border:1px solid #e2e8f0;background:#f8fafc;border-radius:18px;padding:16px;text-align:left;cursor:pointer}.deskCard strong{display:block;color:#0f172a;margin-bottom:6px}.deskCard span{display:block;color:#64748b;font-size:.9rem;line-height:1.5}.studentExplorerModal{position:fixed;inset:0;background:rgba(2,6,23,.75);z-index:100000;overflow:auto;padding:26px}.studentExplorerModalInner{max-width:1100px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.35)}.studentExplorerModalTop{display:flex;justify-content:space-between;align-items:center;background:#020617;color:white;border-radius:16px;padding:14px 16px;margin-bottom:16px}.studentExplorerModalTop h2{margin:0}.studentExplorerModalTop button{border:0;background:#38bdf8;color:#082f49;border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}.studentDetailGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.studentDetailGrid div{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.studentDetailActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.studentDetailActions button{border:0;background:#1d4ed8;color:white;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}.subjectPickerBox{border:1px solid #cbd5e1;background:#fff;border-radius:18px;padding:14px;display:grid;gap:10px;margin-top:12px}.subjectPickerGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.subjectPickerGrid label{display:flex;gap:8px;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px;color:#334155;font-size:.88rem}.idLockNote{background:#ecfdf5;color:#166534;border:1px solid #bbf7d0;border-radius:12px;padding:10px;font-weight:800;margin:8px 0}.publicHost .publicSchoolSite{display:grid!important;grid-template-columns:250px minmax(0,1fr);align-items:start;max-width:1280px!important;gap:22px!important}.publicSideNav{position:sticky;top:20px;background:#020617;color:#e0f2fe;border-radius:24px;padding:18px;box-shadow:0 24px 65px rgba(15,23,42,.18)}.publicSideNav strong{display:block;color:white;margin-bottom:12px}.publicSideNav a{display:block;padding:11px 12px;border-radius:12px;color:#dbeafe;font-weight:800}.publicSideNav a:hover{background:#1d4ed8;color:white}.publicSiteMain{display:grid;gap:22px}.publicHost .publicHeroCards{grid-template-columns:repeat(3,1fr)}@media(max-width:900px){.publicHost .publicSchoolSite{grid-template-columns:1fr}.deskGrid,.studentDetailGrid,.subjectPickerGrid{grid-template-columns:1fr 1fr}}@media(max-width:640px){.deskGrid,.studentDetailGrid,.subjectPickerGrid,.publicHost .publicHeroCards{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 }
 
-function compactPublicSite() {
-  const site = document.querySelector(".publicSchoolSite");
-  if (!site || site.dataset.compact === "true") return;
-  site.dataset.compact = "true";
-  const nav = document.createElement("aside");
-  nav.className = "publicSideNav";
-  nav.innerHTML = `<strong>School Menu</strong><a href="#home">Home</a><a href="#about">About</a><a href="#news">News</a><a href="#gallery">Gallery</a><a href="#admission-public">Admission</a><a href="#contact">Contact</a>`;
-  const main = document.createElement("div");
-  main.className = "publicSiteMain";
-  [...site.children].forEach((child) => main.appendChild(child));
-  site.appendChild(nav);
-  site.appendChild(main);
-}
+function setVal(el, v) { if (!el) return; const p = el.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : el.tagName === "SELECT" ? HTMLSelectElement.prototype : HTMLInputElement.prototype; const setter = Object.getOwnPropertyDescriptor(p, "value")?.set; if (setter) setter.call(el, v); else el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); }
+function autoId(prefix){return `${prefix}-${new Date().getFullYear()}-${Math.floor(1000+Math.random()*9000)}`}
+function lockIds(){document.querySelectorAll('input[placeholder="Staff ID"],input[placeholder="Admission number"]').forEach(input=>{if(!input.value)setVal(input,autoId(input.placeholder.includes('Staff')?'STF':'ADM'));input.readOnly=true;input.title='Auto-generated and locked. It belongs to this record after save.';if(!input.nextElementSibling?.classList?.contains('idLockNote')){const n=document.createElement('div');n.className='idLockNote';n.textContent='This ID is auto-generated and locked. After saving, do not reuse it for another person.';input.after(n)}})}
 
-function parseStudentsFromDom() {
-  const students = [];
-  document.querySelectorAll(".classSection .record, #records .record").forEach((record, index) => {
-    const text = (record.textContent || "").replace(/\s+/g, " ").trim();
-    if (!text || !/(JSS\d|SS\d)/i.test(text)) return;
-    const name = record.querySelector("strong")?.textContent?.replace(/^👤\s*/, "").trim() || text.split(" ")[0] || `Student ${index + 1}`;
-    const className = text.match(/JSS\d|SS\d/i)?.[0]?.toUpperCase() || "JSS1";
-    const gender = text.match(/\b(Male|Female)\b/i)?.[0] || "";
-    const age = text.match(/Age\s*(\d+)/i)?.[1] || "";
-    const genotype = text.match(/Genotype\s*([A-Z]+)/i)?.[1] || "";
-    const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || "";
-    const parent = text.match(/Parent:\s*([^•]+?)(Address:|Subjects:|$)/i)?.[1]?.trim() || "";
-    const address = text.match(/Address:\s*([^•]+?)(Subjects:|$)/i)?.[1]?.trim() || "";
-    const subjects = text.match(/Subjects:\s*(.+)$/i)?.[1]?.trim() || "";
-    students.push({ id: `${className}-${name}-${index}`, name, className, gender, age, genotype, email, parent, address, subjects, raw: text });
-  });
-  return students;
-}
+function compactPublicSite(){const site=document.querySelector('.publicSchoolSite');if(!site||site.dataset.compact==='true')return;site.dataset.compact='true';const nav=document.createElement('aside');nav.className='publicSideNav';nav.innerHTML='<strong>School Menu</strong><a href="#home">Home</a><a href="#about">About</a><a href="#news">News</a><a href="#gallery">Gallery</a><a href="#admission-public">Admission</a><a href="#contact">Contact</a>';const main=document.createElement('div');main.className='publicSiteMain';[...site.children].forEach(c=>main.appendChild(c));site.appendChild(nav);site.appendChild(main)}
+function textRecords(selector){return [...document.querySelectorAll(selector)].map((record,index)=>{const text=(record.textContent||'').replace(/\s+/g,' ').trim();const name=record.querySelector('strong')?.textContent?.replace(/^👤\s*/,'').trim()||text.split(' ')[0]||`Record ${index+1}`;return {index,text,name,record}})}
+function parseStudents(){return textRecords('.classSection .record,#records .record').filter(x=>/(JSS\d|SS\d)/i.test(x.text)).map((x,i)=>({type:'student',id:`STU-${i+1}`,name:x.name,className:x.text.match(/JSS\d|SS\d/i)?.[0]?.toUpperCase()||'JSS1',gender:x.text.match(/\b(Male|Female)\b/i)?.[0]||'',age:x.text.match(/Age\s*(\d+)/i)?.[1]||'',email:x.text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]||'',raw:x.text}))}
+function parseStaff(){return textRecords('.dataCard .record,#records .record').filter(x=>/teacher|staff|@/i.test(x.text)&&!/(Parent:|Genotype)/i.test(x.text)).map((x,i)=>({type:'staff',id:`STA-${i+1}`,name:x.name,className:x.text.match(/JSS\d|SS\d/i)?.[0]?.toUpperCase()||'Not assigned',email:x.text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]||'',raw:x.text}))}
+function parseAssignments(){return textRecords('.dataCard .record,#records .record').filter(x=>/assignment|due|instructions/i.test(x.text)).map((x,i)=>({type:'assignment',id:`ASG-${i+1}`,name:x.name,raw:x.text}))}
 
-function createStudentBrowser() {
-  const actions = document.querySelector(".portalWorkActions") || document.querySelector(".adminActionGrid");
-  if (!actions || document.querySelector(".portalStudentBrowser")) return;
-  document.body.classList.add("rawClassRecordsHidden");
-
-  const browser = document.createElement("section");
-  browser.className = "portalStudentBrowser";
-  browser.innerHTML = `
-    <h3>Student Records</h3>
-    <p class="studentAutoHint">Click Student → choose class → click a name. The raw class list is hidden; details open cleanly in a popup.</p>
-    <div class="studentBrowserTop"><input placeholder="Search student name e.g. Mary John"><select><option value="ALL">All Classes</option><option>JSS1</option><option>JSS2</option><option>JSS3</option><option>SS1</option><option>SS2</option><option>SS3</option></select></div>
-    <div class="studentClassTabs"><button data-class="ALL" class="active">All</button><button data-class="JSS1">JSS1</button><button data-class="JSS2">JSS2</button><button data-class="JSS3">JSS3</button><button data-class="SS1">SS1</button><button data-class="SS2">SS2</button><button data-class="SS3">SS3</button></div>
-    <div class="studentListGrid"></div>
-  `;
-  actions.before(browser);
-
-  const input = browser.querySelector("input");
-  const select = browser.querySelector("select");
-  const list = browser.querySelector(".studentListGrid");
-  let activeClass = "ALL";
-
-  function render() {
-    document.body.classList.add("rawClassRecordsHidden");
-    const q = input.value.toLowerCase().trim();
-    const classFilter = select.value === "ALL" ? activeClass : select.value;
-    const students = parseStudentsFromDom().filter((student) => {
-      const classOk = classFilter === "ALL" || student.className === classFilter;
-      const qOk = !q || student.name.toLowerCase().includes(q) || student.email.toLowerCase().includes(q);
-      return classOk && qOk;
-    });
-    list.innerHTML = students.length ? "" : `<div class="studentMiniCard"><strong>No student found</strong><span>Create or refresh student records first.</span></div>`;
-    students.forEach((student) => {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "studentMiniCard";
-      card.innerHTML = `<strong>${student.name}</strong><span>${student.className} ${student.gender ? "• " + student.gender : ""} ${student.age ? "• Age " + student.age : ""}</span><span>${student.email || "No email"}</span>`;
-      card.onclick = () => showStudentModal(student);
-      list.appendChild(card);
-    });
-  }
-
-  function showStudentModal(student) {
-    document.querySelector(".studentExplorerModal")?.remove();
-    const overlay = document.createElement("div");
-    overlay.className = "studentExplorerModal";
-    overlay.innerHTML = `
-      <div class="studentExplorerModalInner">
-        <div class="studentExplorerModalTop"><h2>${student.name}</h2><button type="button">Close</button></div>
-        <div class="studentDetailGrid">
-          <div><b>Class</b><br>${student.className}</div><div><b>Gender</b><br>${student.gender || "-"}</div><div><b>Age</b><br>${student.age || "-"}</div>
-          <div><b>Genotype</b><br>${student.genotype || "-"}</div><div><b>Email</b><br>${student.email || "-"}</div><div><b>Parent</b><br>${student.parent || "-"}</div>
-          <div><b>Address</b><br>${student.address || "-"}</div><div><b>Subjects</b><br>${student.subjects || "-"}</div><div><b>Record ID</b><br>${student.id}</div>
-        </div>
-        <div class="subjectPickerBox"><b>Subject Section for ${student.className}</b><div class="subjectPickerGrid">${(student.className.startsWith("SS") ? SS_SUBJECTS : JSS_SUBJECTS).map((s) => `<label><input type="checkbox" value="${s}"> ${s}</label>`).join("")}</div></div>
-        <div class="studentDetailActions"><button data-action="result">Compile Result</button><button data-action="scoresheet">Score Sheet</button></div>
-      </div>`;
-    overlay.querySelector(".studentExplorerModalTop button").onclick = () => overlay.remove();
-    overlay.querySelector('[data-action="result"]').onclick = () => autofillResult(student);
-    document.body.appendChild(overlay);
-  }
-
-  function autofillResult(student) {
-    const resultForm = [...document.querySelectorAll(".formCard")].find((form) => /upload result|result for my class/i.test(form.textContent || ""));
-    if (!resultForm) return alert("Result form not found. Refresh and try again.");
-    const actionCard = [...document.querySelectorAll(".portalActionCard")].find((btn) => /upload result/i.test(btn.textContent || ""));
-    if (actionCard) actionCard.click();
-    setTimeout(() => {
-      const modal = document.querySelector(".portalModalOverlay") || document;
-      const set = (key, value) => setVal(modal.querySelector(`[data-rs="${key}"]`), value);
-      set("name", student.name);
-      set("gender", student.gender || "Male");
-      set("age", student.age || "");
-      set("className", student.className);
-      set("reg", student.id);
-      set("studentEmail", student.email || "");
-      const rows = modal.querySelectorAll("tr[data-row]");
-      const subjectList = student.className.startsWith("SS") ? SS_SUBJECTS : JSS_SUBJECTS;
-      rows.forEach((row, idx) => {
-        const subject = row.querySelector(".rs-subject");
-        if (subject && subjectList[idx]) subject.value = subjectList[idx];
-      });
-      modal.querySelector(".exactResultBuilder")?.dispatchEvent(new Event("input", { bubbles: true }));
-    }, 250);
-  }
-
-  browser.querySelectorAll(".studentClassTabs button").forEach((btn) => {
-    btn.onclick = () => {
-      browser.querySelectorAll(".studentClassTabs button").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      activeClass = btn.dataset.class;
-      select.value = "ALL";
-      render();
-    };
-  });
-  input.oninput = render;
-  select.onchange = render;
-  render();
-  setInterval(render, 5000);
-}
-
-function runStudentBrowserEnhancements() {
-  addStudentBrowserStyles();
-  compactPublicSite();
-  createStudentBrowser();
-}
-
-new MutationObserver(runStudentBrowserEnhancements).observe(document.documentElement, { childList: true, subtree: true });
-window.addEventListener("load", runStudentBrowserEnhancements);
-setInterval(runStudentBrowserEnhancements, 1200);
+function createRecordsDesk(){const actions=document.querySelector('.portalWorkActions')||document.querySelector('.adminActionGrid');if(!actions||document.querySelector('.portalRecordsDesk'))return;document.body.classList.add('rawClassRecordsHidden');const desk=document.createElement('section');desk.className='portalRecordsDesk';desk.innerHTML=`<h3>Records Explorer</h3><p class="idLockNote">View what you have created without opening raw lists. Choose Students, Staff, or Assignments.</p><div class="deskTabs"><button class="active" data-type="students">Students</button><button data-type="staff">Staff</button><button data-type="assignments">Assignments</button></div><div class="deskTools"><input placeholder="Search name, email, class"><select><option value="ALL">All Classes</option>${CLASSES.map(c=>`<option>${c}</option>`).join('')}</select></div><div class="deskClassTabs">${['ALL',...CLASSES].map((c,i)=>`<button data-class="${c}" class="${i===0?'active':''}">${c}</button>`).join('')}</div><div class="deskGrid"></div>`;actions.before(desk);let type='students',klass='ALL';const input=desk.querySelector('input'),select=desk.querySelector('select'),grid=desk.querySelector('.deskGrid');function records(){return type==='students'?parseStudents():type==='staff'?parseStaff():parseAssignments()}function render(){document.body.classList.add('rawClassRecordsHidden');const q=input.value.toLowerCase();const k=select.value==='ALL'?klass:select.value;const rows=records().filter(r=>(k==='ALL'||r.className===k)&&(!q||r.raw.toLowerCase().includes(q)||r.name.toLowerCase().includes(q)));grid.innerHTML=rows.length?'':'<div class="deskCard"><strong>No record found</strong><span>Create record first, then refresh/check database.</span></div>';rows.forEach(r=>{const b=document.createElement('button');b.type='button';b.className='deskCard';b.innerHTML=`<strong>${r.name}</strong><span>${r.className||r.type} ${r.email?'• '+r.email:''}</span><span>${r.id}</span>`;b.onclick=()=>openRecord(r);grid.appendChild(b)})}function openRecord(r){document.querySelector('.studentExplorerModal')?.remove();const isStudent=r.type==='student';const subjectList=(r.className||'').startsWith('SS')?SS_SUBJECTS:JSS_SUBJECTS;const ov=document.createElement('div');ov.className='studentExplorerModal';ov.innerHTML=`<div class="studentExplorerModalInner"><div class="studentExplorerModalTop"><h2>${r.name}</h2><button type="button">Close</button></div><div class="studentDetailGrid"><div><b>Type</b><br>${r.type}</div><div><b>Class</b><br>${r.className||'-'}</div><div><b>Email</b><br>${r.email||'-'}</div><div><b>Record ID</b><br>${r.id}</div><div style="grid-column:1/-1"><b>Full Record</b><br>${r.raw}</div></div>${isStudent?`<div class="subjectPickerBox"><b>Subjects for ${r.className}</b><div class="subjectPickerGrid">${subjectList.map(s=>`<label><input type="checkbox"> ${s}</label>`).join('')}</div></div><div class="studentDetailActions"><button data-action="result">Compile Result</button><button data-action="profile">Profile</button></div>`:''}</div>`;ov.querySelector('button').onclick=()=>ov.remove();ov.querySelector('[data-action="result"]')?.addEventListener('click',()=>autofillResult(r));document.body.appendChild(ov)}function autofillResult(student){const actionCard=[...document.querySelectorAll('.portalActionCard')].find(btn=>/upload result/i.test(btn.textContent||''));if(actionCard)actionCard.click();setTimeout(()=>{const modal=document.querySelector('.portalModalOverlay')||document;const set=(k,v)=>setVal(modal.querySelector(`[data-rs="${k}"]`),v);set('name',student.name);set('className',student.className);set('gender',student.gender||'Male');set('age',student.age||'');set('studentEmail',student.email||'');set('reg',student.id);const subjectList=(student.className||'').startsWith('SS')?SS_SUBJECTS:JSS_SUBJECTS;modal.querySelectorAll('tr[data-row]').forEach((row,i)=>{const sub=row.querySelector('.rs-subject');if(sub&&subjectList[i])sub.value=subjectList[i]});modal.querySelector('.exactResultBuilder')?.dispatchEvent(new Event('input',{bubbles:true}))},300)}desk.querySelectorAll('.deskTabs button').forEach(b=>b.onclick=()=>{desk.querySelectorAll('.deskTabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');type=b.dataset.type;render()});desk.querySelectorAll('.deskClassTabs button').forEach(b=>b.onclick=()=>{desk.querySelectorAll('.deskClassTabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');klass=b.dataset.class;select.value='ALL';render()});input.oninput=render;select.onchange=render;render();setInterval(render,5000)}
+function run(){addStudentBrowserStyles();compactPublicSite();lockIds();createRecordsDesk()}
+new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('load',run);setInterval(run,1200);
