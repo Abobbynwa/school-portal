@@ -7,7 +7,8 @@ function addStudentBrowserStyles() {
   style.id = "student-browser-css";
   style.textContent = `
     .publicHost .publicSchoolSite{display:grid!important;grid-template-columns:250px minmax(0,1fr);align-items:start;max-width:1280px!important;gap:22px!important}.publicSideNav{position:sticky;top:20px;background:#020617;color:#e0f2fe;border-radius:24px;padding:18px;box-shadow:0 24px 65px rgba(15,23,42,.18)}.publicSideNav strong{display:block;color:white;margin-bottom:12px;font-size:1.05rem}.publicSideNav a{display:block;padding:11px 12px;border-radius:12px;color:#dbeafe;font-weight:800}.publicSideNav a:hover{background:#1d4ed8;color:white}.publicSiteMain{display:grid;gap:22px}.publicHost .publicHeroCards,.publicHost .publicSection{grid-column:auto!important}.publicHost .publicHeroCards{grid-template-columns:repeat(3,1fr)}
-    .portalStudentBrowser{grid-column:1/-1;background:#fff;border:1px solid #bfdbfe;border-radius:28px;padding:24px;box-shadow:0 22px 60px rgba(15,23,42,.08);display:grid;gap:18px}.portalStudentBrowser h3{margin:0;color:#0f172a;font-size:1.5rem}.studentBrowserTop{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.studentBrowserTop input,.studentBrowserTop select{border:1px solid #cbd5e1;background:#f8fafc;border-radius:12px;padding:12px 14px;font:inherit;min-width:180px}.studentClassTabs{display:flex;gap:10px;flex-wrap:wrap}.studentClassTabs button{border:0;background:#e0f2fe;color:#075985;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}.studentClassTabs button.active{background:#020617;color:white}.studentListGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.studentMiniCard{border:1px solid #e2e8f0;background:#f8fafc;border-radius:18px;padding:16px;text-align:left;cursor:pointer}.studentMiniCard strong{display:block;color:#0f172a;margin-bottom:6px}.studentMiniCard span{display:block;color:#64748b;font-size:.9rem;line-height:1.5}.studentDetailPanel{border:1px solid #dbeafe;background:#f8fbff;border-radius:22px;padding:20px;display:none}.studentDetailPanel.show{display:grid;gap:12px}.studentDetailGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.studentDetailGrid div{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.studentDetailActions{display:flex;gap:10px;flex-wrap:wrap}.studentDetailActions button{border:0;background:#1d4ed8;color:white;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}.subjectPickerBox{border:1px solid #cbd5e1;background:#fff;border-radius:18px;padding:14px;display:grid;gap:10px}.subjectPickerGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.subjectPickerGrid label{display:flex;gap:8px;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px;color:#334155;font-size:.88rem}.studentAutoHint{background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;border-radius:14px;padding:12px;font-weight:800}.studentExplorerModal{position:fixed;inset:0;background:rgba(2,6,23,.75);z-index:100000;overflow:auto;padding:26px}.studentExplorerModalInner{max-width:1100px;margin:auto;background:#fff;border-radius:24px;padding:22px}.studentExplorerModalTop{display:flex;justify-content:space-between;align-items:center;background:#020617;color:white;border-radius:16px;padding:14px 16px;margin-bottom:16px}.studentExplorerModalTop button{border:0;background:#38bdf8;color:#082f49;border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}
+    .rawClassRecordsHidden .classSection{display:none!important}.rawClassRecordsHidden #records .classSection{display:none!important}.rawClassRecordsHidden .classGrid{display:none!important}
+    .portalStudentBrowser{grid-column:1/-1;background:#fff;border:1px solid #bfdbfe;border-radius:28px;padding:24px;box-shadow:0 22px 60px rgba(15,23,42,.08);display:grid;gap:18px}.portalStudentBrowser h3{margin:0;color:#0f172a;font-size:1.5rem}.studentBrowserTop{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.studentBrowserTop input,.studentBrowserTop select{border:1px solid #cbd5e1;background:#f8fafc;border-radius:12px;padding:12px 14px;font:inherit;min-width:180px}.studentClassTabs{display:flex;gap:10px;flex-wrap:wrap}.studentClassTabs button{border:0;background:#e0f2fe;color:#075985;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer}.studentClassTabs button.active{background:#020617;color:white}.studentListGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.studentMiniCard{border:1px solid #e2e8f0;background:#f8fafc;border-radius:18px;padding:16px;text-align:left;cursor:pointer}.studentMiniCard strong{display:block;color:#0f172a;margin-bottom:6px}.studentMiniCard span{display:block;color:#64748b;font-size:.9rem;line-height:1.5}.studentDetailGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.studentDetailGrid div{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px}.studentDetailActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.studentDetailActions button{border:0;background:#1d4ed8;color:white;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}.subjectPickerBox{border:1px solid #cbd5e1;background:#fff;border-radius:18px;padding:14px;display:grid;gap:10px;margin-top:12px}.subjectPickerGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.subjectPickerGrid label{display:flex;gap:8px;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px;color:#334155;font-size:.88rem}.studentAutoHint{background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;border-radius:14px;padding:12px;font-weight:800}.studentExplorerModal{position:fixed;inset:0;background:rgba(2,6,23,.75);z-index:100000;overflow:auto;padding:26px}.studentExplorerModalInner{max-width:1100px;margin:auto;background:#fff;border-radius:24px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.35)}.studentExplorerModalTop{display:flex;justify-content:space-between;align-items:center;background:#020617;color:white;border-radius:16px;padding:14px 16px;margin-bottom:16px}.studentExplorerModalTop h2{margin:0}.studentExplorerModalTop button{border:0;background:#38bdf8;color:#082f49;border-radius:10px;padding:9px 12px;font-weight:900;cursor:pointer}
     @media(max-width:900px){.publicHost .publicSchoolSite{grid-template-columns:1fr}.publicSideNav{position:relative;top:auto}.studentListGrid,.studentDetailGrid,.subjectPickerGrid{grid-template-columns:1fr 1fr}}
     @media(max-width:640px){.studentListGrid,.studentDetailGrid,.subjectPickerGrid,.publicHost .publicHeroCards{grid-template-columns:1fr}}
   `;
@@ -40,8 +41,9 @@ function parseStudentsFromDom() {
     const genotype = text.match(/Genotype\s*([A-Z]+)/i)?.[1] || "";
     const email = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] || "";
     const parent = text.match(/Parent:\s*([^•]+?)(Address:|Subjects:|$)/i)?.[1]?.trim() || "";
+    const address = text.match(/Address:\s*([^•]+?)(Subjects:|$)/i)?.[1]?.trim() || "";
     const subjects = text.match(/Subjects:\s*(.+)$/i)?.[1]?.trim() || "";
-    students.push({ id: `${className}-${name}-${index}`, name, className, gender, age, genotype, email, parent, subjects, raw: text });
+    students.push({ id: `${className}-${name}-${index}`, name, className, gender, age, genotype, email, parent, address, subjects, raw: text });
   });
   return students;
 }
@@ -49,26 +51,26 @@ function parseStudentsFromDom() {
 function createStudentBrowser() {
   const actions = document.querySelector(".portalWorkActions") || document.querySelector(".adminActionGrid");
   if (!actions || document.querySelector(".portalStudentBrowser")) return;
+  document.body.classList.add("rawClassRecordsHidden");
 
   const browser = document.createElement("section");
   browser.className = "portalStudentBrowser";
   browser.innerHTML = `
     <h3>Student Records</h3>
-    <p class="studentAutoHint">Click Student → choose class → click name. Staff can view assigned class students and use result compile. Admin can view, edit and modify records from the admin modules.</p>
+    <p class="studentAutoHint">Click Student → choose class → click a name. The raw class list is hidden; details open cleanly in a popup.</p>
     <div class="studentBrowserTop"><input placeholder="Search student name e.g. Mary John"><select><option value="ALL">All Classes</option><option>JSS1</option><option>JSS2</option><option>JSS3</option><option>SS1</option><option>SS2</option><option>SS3</option></select></div>
     <div class="studentClassTabs"><button data-class="ALL" class="active">All</button><button data-class="JSS1">JSS1</button><button data-class="JSS2">JSS2</button><button data-class="JSS3">JSS3</button><button data-class="SS1">SS1</button><button data-class="SS2">SS2</button><button data-class="SS3">SS3</button></div>
     <div class="studentListGrid"></div>
-    <div class="studentDetailPanel"></div>
   `;
   actions.before(browser);
 
   const input = browser.querySelector("input");
   const select = browser.querySelector("select");
   const list = browser.querySelector(".studentListGrid");
-  const detail = browser.querySelector(".studentDetailPanel");
   let activeClass = "ALL";
 
   function render() {
+    document.body.classList.add("rawClassRecordsHidden");
     const q = input.value.toLowerCase().trim();
     const classFilter = select.value === "ALL" ? activeClass : select.value;
     const students = parseStudentsFromDom().filter((student) => {
@@ -82,23 +84,29 @@ function createStudentBrowser() {
       card.type = "button";
       card.className = "studentMiniCard";
       card.innerHTML = `<strong>${student.name}</strong><span>${student.className} ${student.gender ? "• " + student.gender : ""} ${student.age ? "• Age " + student.age : ""}</span><span>${student.email || "No email"}</span>`;
-      card.onclick = () => showDetail(student);
+      card.onclick = () => showStudentModal(student);
       list.appendChild(card);
     });
   }
 
-  function showDetail(student) {
-    detail.classList.add("show");
-    detail.innerHTML = `
-      <h3>${student.name}</h3>
-      <div class="studentDetailGrid">
-        <div><b>Class</b><br>${student.className}</div><div><b>Gender</b><br>${student.gender || "-"}</div><div><b>Age</b><br>${student.age || "-"}</div>
-        <div><b>Genotype</b><br>${student.genotype || "-"}</div><div><b>Email</b><br>${student.email || "-"}</div><div><b>Parent</b><br>${student.parent || "-"}</div>
-      </div>
-      <div class="subjectPickerBox"><b>Subject Section for ${student.className}</b><div class="subjectPickerGrid">${(student.className.startsWith("SS") ? SS_SUBJECTS : JSS_SUBJECTS).map((s) => `<label><input type="checkbox" value="${s}"> ${s}</label>`).join("")}</div></div>
-      <div class="studentDetailActions"><button data-action="profile">Show Profile</button><button data-action="result">Compile Result</button><button data-action="scoresheet">Score Sheet</button></div>
-    `;
-    detail.querySelector('[data-action="result"]').onclick = () => autofillResult(student);
+  function showStudentModal(student) {
+    document.querySelector(".studentExplorerModal")?.remove();
+    const overlay = document.createElement("div");
+    overlay.className = "studentExplorerModal";
+    overlay.innerHTML = `
+      <div class="studentExplorerModalInner">
+        <div class="studentExplorerModalTop"><h2>${student.name}</h2><button type="button">Close</button></div>
+        <div class="studentDetailGrid">
+          <div><b>Class</b><br>${student.className}</div><div><b>Gender</b><br>${student.gender || "-"}</div><div><b>Age</b><br>${student.age || "-"}</div>
+          <div><b>Genotype</b><br>${student.genotype || "-"}</div><div><b>Email</b><br>${student.email || "-"}</div><div><b>Parent</b><br>${student.parent || "-"}</div>
+          <div><b>Address</b><br>${student.address || "-"}</div><div><b>Subjects</b><br>${student.subjects || "-"}</div><div><b>Record ID</b><br>${student.id}</div>
+        </div>
+        <div class="subjectPickerBox"><b>Subject Section for ${student.className}</b><div class="subjectPickerGrid">${(student.className.startsWith("SS") ? SS_SUBJECTS : JSS_SUBJECTS).map((s) => `<label><input type="checkbox" value="${s}"> ${s}</label>`).join("")}</div></div>
+        <div class="studentDetailActions"><button data-action="result">Compile Result</button><button data-action="scoresheet">Score Sheet</button></div>
+      </div>`;
+    overlay.querySelector(".studentExplorerModalTop button").onclick = () => overlay.remove();
+    overlay.querySelector('[data-action="result"]').onclick = () => autofillResult(student);
+    document.body.appendChild(overlay);
   }
 
   function autofillResult(student) {
